@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  USD
+  NGN
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  username          String
+  email             String    @unique
+  password          String
+  passwordChangedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  accounts     Account[]
+  transactions Transaction[]
+  Budget       Budget[]
+
+  @@map("users")
+}
+
+model AccountType {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  color     String?
+  icon      String?
+  createdBy Int?
+
+  accounts Account[]
+
+  @@map("account_types")
+}
+
+model Account {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  accountTypeId  Int
+  name           String
+  currency       Currency @default(NGN)
+  openingBalance Float    @default(0)
+  currentBalance Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id])
+  accountType AccountType @relation(fields: [accountTypeId], references: [id])
+
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  accountId         Int
+  categoryId        Int?
+  transactionTypeId Int
+  amount            Float
+  date              DateTime @default(now())
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id])
+  account         Account         @relation(fields: [accountId], references: [id])
+  category        Category?       @relation(fields: [categoryId], references: [id])
+  transactionType TransactionType @relation(fields: [transactionTypeId], references: [id])
+
+  @@map("transactions")
+}
+
+model TransactionType {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  transactions Transaction[]
+
+  @@map("transaction_types")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  name      String   @unique
+  icon      String?
+  color     String?
+  parentId  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@map("categories")
+}
+
+enum BudgetPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model Budget {
+  id         Int          @id @default(autoincrement())
+  userId     Int
+  categoryId Int?
+  name       String
+  amount     Float
+  period     BudgetPeriod @default(MONTHLY)
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, startDate])
+  @@map("budgets")
+}
