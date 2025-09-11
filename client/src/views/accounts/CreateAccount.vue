@@ -202,7 +202,6 @@ onMounted(async () => {
   try {
     const response = await api.get('/accounts/types')
     if (response.status === 200) {
-      console.log(response.data.data)
       accountTypes.value = response.data.data
     }
   } catch (error: unknown) {

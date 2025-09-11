@@ -16,9 +16,8 @@ export const useAccountStore = defineStore('accounts', () => {
     try {
       const response = await api.get('/accounts/fetch')
       if (response.status === 200) {
-        console.log(response.data.data)
         accounts.value = response.data.data
-        if (response.data?.data.length > 0) {
+        if (response.data?.data.accounts.length > 0) {
           router.replace('/dashboard')
           console.log('Account exist for user')
         } else {

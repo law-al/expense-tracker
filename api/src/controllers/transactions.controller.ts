@@ -52,6 +52,12 @@ export const createTransaction = async (
     if (account.userId !== req.user?.id) {
       return next(new NotFoundError('Account not for this user'));
     }
+
+    if (transactionType.name.toLowerCase() === 'expense') {
+      if (account.currentBalance && account.currentBalance < +req.body.amount) {
+        return next(new BadRequestError('Insufficient balance'));
+      }
+    }
   } catch (error) {
     throw new NotFoundError('Account not found');
   }
@@ -90,7 +96,7 @@ export const createTransaction = async (
         amount: +req.body.amount,
         transactionTypeId: transactionType.id,
         description: req.body.description,
-        date: new Date(req.body.date) || new Date(),
+        date: new Date(),
       },
     });
 
@@ -239,16 +245,23 @@ export const getUserExpensesAggregrate = async (
   next: NextFunction
 ) => {
   if (!req.user) return;
+
   const aggregateExpenses = await prismaClient.transaction.groupBy({
     by: ['categoryId'],
     where: {
       userId: req.user?.id,
-      transactionTypeId: 1,
+      transactionTypeId: 1, // Expenses
     },
     _sum: {
       amount: true,
     },
   });
+
+  // result looks like this
+  // [
+  //   { categoryId: 1, _sum: { amount: 500 } },
+  //   { categoryId: 2, _sum: { amount: 300 } },
+  // ]
 
   //REVIEW:
   interface AggregrateData {
@@ -284,5 +297,47 @@ export const getUserExpensesAggregrate = async (
     success: true,
     message: 'User expenses fetched successfully',
     data: aggregrateData,
+  });
+};
+
+// SECTION: Get recent transactions for the logged in user
+
+export const getRecentTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) return;
+
+  const recentTransactions = await prismaClient.transaction.findMany({
+    where: {
+      userId: +req.user?.id,
+    },
+    select: {
+      date: true,
+      description: true,
+      amount: true,
+      account: {
+        select: {
+          name: true,
+          currency: true,
+        },
+      },
+      transactionType: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      date: 'desc',
+    },
+    take: 3,
+  });
+
+  res.status(HttpStatus.OK).json({
+    success: true,
+    message: 'Recent transactions fetched successfully',
+    data: recentTransactions,
   });
 };

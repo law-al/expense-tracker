@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/catch-async.js';
 import {
   createTransaction,
   createTransferTransaction,
+  getRecentTransactions,
   getUserExpensesAggregrate,
 } from '../controllers/transactions.controller.js';
 
@@ -20,5 +21,6 @@ transactionsRoute.get(
   protect,
   asyncHandler(getUserExpensesAggregrate)
 );
+transactionsRoute.get('/recent', protect, asyncHandler(getRecentTransactions));
 
 export default transactionsRoute;

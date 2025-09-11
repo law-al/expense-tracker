@@ -4,9 +4,11 @@
 
 @theme {
   --color-purple-main: #6b63ff;
+  --color-charcoal-gray: rgba(255, 255, 255, 0.05);
 }
 
 body {
   color: white;
   font-family: 'Poppins', sans-serif;
+  background: linear-gradient(180deg, #0b0e1a, #1a1446);
 }

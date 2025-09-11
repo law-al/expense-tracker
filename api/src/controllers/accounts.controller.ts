@@ -6,6 +6,7 @@ import { NotFoundError } from '../exceptions/not-found.js';
 import { UnAuthorizedError } from '../exceptions/unauthorized.js';
 import { HttpStatus } from '../utils/http-status.js';
 import { success } from 'zod';
+import type { AccountWithDetails } from '../types/index.js';
 
 //SECTION: Create account
 
@@ -161,12 +162,21 @@ export const getAccounts = async (
   next: NextFunction
 ) => {
   if (!req.user) return;
-  const accounts = await prismaClient.account.findMany({
+  const accounts: AccountWithDetails[] = await prismaClient.account.findMany({
     where: {
       userId: +req.user?.id,
     },
-    include: {
-      accountType: true,
+    select: {
+      name: true,
+      currency: true,
+      currentBalance: true,
+      accountType: {
+        select: {
+          name: true,
+          icon: true,
+          color: true,
+        },
+      },
       transactions: {
         select: {
           id: true,
@@ -181,7 +191,13 @@ export const getAccounts = async (
   res.status(HttpStatus.OK).json({
     success: true,
     message: 'Accounts fetched successfully',
-    data: accounts,
+    data: {
+      accounts,
+      totalBalance: accounts.reduce(
+        (acc, account) => acc + (account?.currentBalance || 0),
+        0
+      ),
+    },
   });
 };
 
