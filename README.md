@@ -46,7 +46,7 @@ For local development, you'll need to run both the backend and frontend:
 1. Start the backend (from `/api` directory):
 
    ```
-   npm run dev
+   npm start
    ```
 
 2. Start the frontend (from `/client` directory):
@@ -59,7 +59,3 @@ For local development, you'll need to run both the backend and frontend:
 - **Frontend**: Vue 3, Vite, Tailwind CSS, Pinia
 - **Backend**: Node.js, Express, TypeScript, Prisma
 - **Database**: MySQL
-
-## License
-
-[MIT](LICENSE)

@@ -1,15 +1,20 @@
 import { defineStore } from 'pinia'
-import type { Account } from '../../../api/src/types'
+import type { AccountWithDetails } from '../../../api/src/types'
 import { ref } from 'vue'
 import api from '@/services/api'
 import { useRouter } from 'vue-router'
 
 export const useAccountStore = defineStore('accounts', () => {
   const router = useRouter()
-  const accounts = ref<Array<Account>>([])
+  const accounts = ref<Array<AccountWithDetails>>([])
+  const selectedAccount = ref<AccountWithDetails | null>(null)
 
-  const setAccounts = (newAccounts: Array<Account>) => {
+  const setAccounts = (newAccounts: Array<AccountWithDetails>) => {
     accounts.value = newAccounts
+  }
+
+  const setAccount = (account: AccountWithDetails) => {
+    selectedAccount.value = account
   }
 
   const getUsersAccount = async () => {
@@ -30,5 +35,5 @@ export const useAccountStore = defineStore('accounts', () => {
     }
   }
 
-  return { accounts, setAccounts, getUsersAccount }
+  return { accounts, selectedAccount, setAccount, setAccounts, getUsersAccount }
 })

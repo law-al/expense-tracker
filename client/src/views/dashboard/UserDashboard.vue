@@ -9,7 +9,7 @@
               {{ item.label }}
             </span>
             <p class="text-2xl font-semibold text-white mt-1">
-              {{ formattedCurrency(accountSummaryData.totalBalance, 'USD') }}
+              {{ formattedCurrency(accountSummary.totalBalance, 'USD') }}
             </p>
           </template>
 
@@ -22,7 +22,7 @@
             <!-- Break down details -->
             <div v-if="!isLoading && !fetchError" class="flex flex-col gap-2 my-4">
               <div
-                v-for="account in accountSummaryData.accounts"
+                v-for="account in accountSummary.accounts"
                 :key="account.name"
                 class="flex items-center gap-4 text-white"
               >
@@ -51,12 +51,12 @@
 
         <div class="flex flex-col gap-4">
           <!-- Transaction item -->
-          <div v-if="recentTransactionsData.length === 0" class="">
+          <div v-if="recentTransactions.length === 0" class="">
             <p class="text-gray-400 text-sm">No recent transactions available.</p>
           </div>
           <div
             v-else
-            v-for="(transaction, index) in recentTransactionsData"
+            v-for="(transaction, index) in recentTransactions"
             :key="index"
             class="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg"
           >
@@ -110,7 +110,7 @@
           <p class="text-xs text-gray-400">Your expense trends</p>
         </header>
 
-        <ExpenseChart :data="expenseSummaryData" :loading="isLoading" />
+        <ExpenseChart :data="expenseByCategory" :loading="isLoading" />
       </div>
     </section>
   </app-layout>
@@ -128,6 +128,9 @@ import type {
 import type { AccordionItem } from '@nuxt/ui'
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
+import { useAccountStore } from '@/stores/account.store'
+import { useCategoryStore } from '@/stores/category.store'
+import { useDashboardData } from '@/composables/fetchDashBoardData'
 
 const items = ref<AccordionItem[]>([
   {
@@ -135,14 +138,25 @@ const items = ref<AccordionItem[]>([
   },
 ])
 
-const accountSummaryData = ref<{ accounts: AccountWithDetails[]; totalBalance: number }>({
+const accountStore = useAccountStore()
+const categoryStore = useCategoryStore()
+const accountSummary = ref<{ accounts: AccountWithDetails[]; totalBalance: number }>({
   accounts: [],
   totalBalance: 0,
 })
-const recentTransactionsData = ref<TransactionWithDetails[]>([])
-const expenseSummaryData = ref<CategoryExpenseSummary[]>([])
+const recentTransactions = ref<TransactionWithDetails[]>([])
+const expenseByCategory = ref<CategoryExpenseSummary[]>([])
 const isLoading = ref<boolean>(false)
 const fetchError = ref<string | null>(null)
+
+const {
+  isDashboardLoading,
+  dashBoardError,
+  accountsOverview,
+  recentTransactions: recentTxns,
+  expenseByCategory: expenseSummary,
+  refreshDashboard,
+} = useDashboardData()
 
 // Helper functions
 const formattedCurrency = (amount: number, currency: string = 'USD') => {
@@ -192,17 +206,28 @@ const getTransactionAmountColor = (transactionType: string) => {
 }
 
 onMounted(async () => {
-  const endPoints = ['/accounts/fetch', '/transactions/recent', 'transactions/expenses_aggregrate']
+  const endPoints = [
+    '/accounts/fetch',
+    '/transactions/recent',
+    'transactions/expenses_aggregrate',
+    'category/fetch',
+  ]
   isLoading.value = true
   fetchError.value = null
   axios
     .all(endPoints.map((endpoint) => api.get(endpoint)))
     .then(
-      axios.spread((accountsResponse, transactionsResponse, expenseSummaryResponse) => {
-        accountSummaryData.value = accountsResponse.data.data
-        recentTransactionsData.value = transactionsResponse.data.data
-        expenseSummaryData.value = expenseSummaryResponse.data.data
-      }),
+      axios.spread(
+        (accountsResponse, transactionsResponse, expenseSummaryResponse, categoryResponse) => {
+          accountSummary.value = accountsResponse.data.data
+          recentTransactions.value = transactionsResponse.data.data
+          expenseByCategory.value = expenseSummaryResponse.data.data
+
+          //
+          accountStore.setAccounts(accountsResponse.data.data.accounts)
+          categoryStore.setCategories(categoryResponse.data.data)
+        },
+      ),
     )
     .catch((errors) => {
       console.error('Error fetching data:', errors)

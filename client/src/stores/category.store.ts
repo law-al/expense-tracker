@@ -1,0 +1,45 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import type { Category } from '../../../api/src/types'
+import api from '@/services/api'
+
+export const useCategoryStore = defineStore('category', () => {
+  const categories = ref<Category[]>([])
+  const selectedCategory = ref<Category | null>(null)
+  const subCategories = ref<Category[]>([])
+  const selectedSubCategory = ref<Category | null>(null)
+
+  const setCategories = (newCategories: Category[]) => {
+    categories.value = newCategories
+  }
+
+  const setCategory = (newCategories: Category) => {
+    selectedCategory.value = newCategories
+  }
+
+  const setSubCategory = (newSubCategories: Category | null) => {
+    selectedSubCategory.value = newSubCategories
+  }
+
+  const getSubCategoriesById = async (id: number) => {
+    try {
+      const response = await api.get(`/category/subcategory/${id}`)
+      if (response.status === 200) {
+        subCategories.value = response.data.data
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  return {
+    selectedCategory,
+    subCategories,
+    setSubCategory,
+    selectedSubCategory,
+    categories,
+    setCategory,
+    setCategories,
+    getSubCategoriesById,
+  }
+})

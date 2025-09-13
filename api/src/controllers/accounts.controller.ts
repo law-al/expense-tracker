@@ -5,7 +5,6 @@ import { prismaClient } from '../utils/prisma-client.js';
 import { NotFoundError } from '../exceptions/not-found.js';
 import { UnAuthorizedError } from '../exceptions/unauthorized.js';
 import { HttpStatus } from '../utils/http-status.js';
-import { success } from 'zod';
 import type { AccountWithDetails } from '../types/index.js';
 
 //SECTION: Create account
@@ -167,6 +166,7 @@ export const getAccounts = async (
       userId: +req.user?.id,
     },
     select: {
+      id: true,
       name: true,
       currency: true,
       currentBalance: true,

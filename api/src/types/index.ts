@@ -4,6 +4,7 @@ export type { User, Account, AccountType } from '@prisma/client';
 
 export type AccountWithDetails = Prisma.AccountGetPayload<{
   select: {
+    id: true;
     name: true;
     currency: true;
     currentBalance: true;
@@ -50,3 +51,14 @@ export type CategoryExpenseSummary = {
   categoryColor?: string | null;
   totalAmount: number | null;
 };
+
+export type Category = Prisma.CategoryGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    icon: true;
+    color: true;
+    parentId: true;
+    userId: true;
+  };
+}>;

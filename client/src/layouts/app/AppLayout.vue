@@ -27,10 +27,18 @@
         </router-link>
 
         <!-- Add Transaction -->
-        <div
-          class="w-[45px] h-[45px] rounded-full text-white bg-indigo-700 flex items-center justify-center"
-        >
-          <u-icon name="i-mynaui-plus" class="size-8" />
+        <div class="">
+          <div
+            @click="openAccount = true"
+            class="w-[45px] h-[45px] rounded-full text-white bg-indigo-700 flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-800"
+          >
+            <u-icon name="i-mynaui-plus" class="size-8" />
+          </div>
+
+          <add-transaction
+            :open-account-view="openAccount"
+            @close-account-view="openAccount = false"
+          />
         </div>
 
         <!-- Budgets -->
@@ -57,7 +65,19 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import AddTransaction from '@/components/transactions/SetAccount.vue'
+
+import { watch } from 'vue'
+import { ref } from 'vue'
+
+// Drawer state
+const openAccount = ref<boolean>(false)
+
+watch(openAccount, (newVal) => {
+  console.log('Add Transaction Modal Visible:', newVal)
+})
+</script>
 
 <style scoped>
 .bg-image {

@@ -113,7 +113,7 @@ export const createTransaction = async (
     });
   });
 
-  res.status(HttpStatus.OK).json({
+  res.status(HttpStatus.CREATED).json({
     success: true,
     message: 'Transaction created successfully',
   });
