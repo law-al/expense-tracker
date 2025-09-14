@@ -29,15 +29,15 @@
         <!-- Add Transaction -->
         <div class="">
           <div
-            @click="openAccount = true"
+            @click="openTransactionModal = true"
             class="w-[45px] h-[45px] rounded-full text-white bg-indigo-700 flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-800"
           >
             <u-icon name="i-mynaui-plus" class="size-8" />
           </div>
 
           <add-transaction
-            :open-account-view="openAccount"
-            @close-account-view="openAccount = false"
+            :open-add-transaction-view="openTransactionModal"
+            @close-add-transaction-view="openTransactionModal = false"
           />
         </div>
 
@@ -66,17 +66,22 @@
 </template>
 
 <script setup lang="ts">
-import AddTransaction from '@/components/transactions/SetAccount.vue'
+import AddTransaction from '@/components/transactions/AddTransaction.vue'
+import { useGlobalStore } from '@/stores/global.store'
+import { storeToRefs } from 'pinia'
 
 import { watch } from 'vue'
-import { ref } from 'vue'
 
 // Drawer state
-const openAccount = ref<boolean>(false)
+const globalStore = useGlobalStore()
+const { openTransactionModal } = storeToRefs(globalStore)
 
-watch(openAccount, (newVal) => {
-  console.log('Add Transaction Modal Visible:', newVal)
-})
+watch(
+  () => openTransactionModal.value,
+  (newVal) => {
+    console.log('Add Transaction Modal Visible:', newVal)
+  },
+)
 </script>
 
 <style scoped>

@@ -49,7 +49,10 @@
       </div>
     </template>
   </UDrawer>
-  <set-category :open-category-view="openCategory" @close-category-view="openCategory = false" />
+  <set-category
+    :open-category-view="openSetCategoryModal"
+    @close-category-view="openSetCategoryModal = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -58,6 +61,7 @@ import { ref, watch } from 'vue'
 import SetCategory from './SetCategory.vue'
 import { useAccountStore } from '@/stores/account.store'
 import { storeToRefs } from 'pinia'
+import { useGlobalStore } from '@/stores/global.store'
 
 const props = defineProps<{
   openAccountView: boolean
@@ -69,8 +73,9 @@ const emit = defineEmits<{
 
 const accountsStore = useAccountStore()
 const { accounts } = storeToRefs(accountsStore)
-// to open the category
-const openCategory = ref<boolean>(false)
+const globalStore = useGlobalStore()
+// Use global store state for category modal visibility
+const { openSetCategoryModal } = storeToRefs(globalStore)
 
 const formatCurrency = (value: number, currency: string = 'USD') => {
   return new Intl.NumberFormat('en-US', {
@@ -80,7 +85,7 @@ const formatCurrency = (value: number, currency: string = 'USD') => {
 }
 
 const handleOpenAndSet = (account: AccountWithDetails) => {
-  openCategory.value = true
+  openSetCategoryModal.value = true
   accountsStore.setAccount(account)
 }
 

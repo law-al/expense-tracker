@@ -9,12 +9,23 @@ export const useCategoryStore = defineStore('category', () => {
   const subCategories = ref<Category[]>([])
   const selectedSubCategory = ref<Category | null>(null)
 
-  const setCategories = (newCategories: Category[]) => {
-    categories.value = newCategories
-  }
+  const expenseCategories = ref<Category[]>([])
+  const incomeCategories = ref<Category[]>([])
+
+  // const setCategories = (newCategories: Category[]) => {
+  //   categories.value = newCategories
+  // }
 
   const setCategory = (newCategories: Category) => {
     selectedCategory.value = newCategories
+  }
+
+  const setCategories = (newCategories: Category[], type: 'expense' | 'income') => {
+    if (type === 'expense') {
+      expenseCategories.value = newCategories
+    } else if (type === 'income') {
+      incomeCategories.value = newCategories
+    }
   }
 
   const setSubCategory = (newSubCategories: Category | null) => {
@@ -35,11 +46,14 @@ export const useCategoryStore = defineStore('category', () => {
   return {
     selectedCategory,
     subCategories,
+    setCategories,
+    expenseCategories,
+    incomeCategories,
     setSubCategory,
     selectedSubCategory,
     categories,
     setCategory,
-    setCategories,
+
     getSubCategoriesById,
   }
 })

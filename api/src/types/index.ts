@@ -57,6 +57,7 @@ export type Category = Prisma.CategoryGetPayload<{
     id: true;
     name: true;
     icon: true;
+    transactionTypeId: true;
     color: true;
     parentId: true;
     userId: true;

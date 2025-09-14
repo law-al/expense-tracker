@@ -9,20 +9,20 @@
               {{ item.label }}
             </span>
             <p class="text-2xl font-semibold text-white mt-1">
-              {{ formattedCurrency(accountSummary.totalBalance, 'USD') }}
+              {{ formattedCurrency(accountsOverview.totalBalance, 'USD') }}
             </p>
           </template>
 
           <template #content>
             <!-- loading -->
-            <div v-if="isLoading" class="text-white">Loading account data...</div>
+            <div v-if="isDashboardLoading" class="text-white">Loading account data...</div>
             <!-- error -->
-            <div v-if="fetchError" class="text-red-500">{{ fetchError }}</div>
+            <div v-if="dashBoardError" class="text-red-500">{{ dashBoardError }}</div>
 
             <!-- Break down details -->
-            <div v-if="!isLoading && !fetchError" class="flex flex-col gap-2 my-4">
+            <div v-if="!isDashboardLoading && !dashBoardError" class="flex flex-col gap-2 my-4">
               <div
-                v-for="account in accountSummary.accounts"
+                v-for="account in accountsOverview.accounts"
                 :key="account.name"
                 class="flex items-center gap-4 text-white"
               >
@@ -51,12 +51,12 @@
 
         <div class="flex flex-col gap-4">
           <!-- Transaction item -->
-          <div v-if="recentTransactions.length === 0" class="">
+          <div v-if="recentTxns.length === 0" class="">
             <p class="text-gray-400 text-sm">No recent transactions available.</p>
           </div>
           <div
             v-else
-            v-for="(transaction, index) in recentTransactions"
+            v-for="(transaction, index) in recentTxns"
             :key="index"
             class="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg"
           >
@@ -110,7 +110,7 @@
           <p class="text-xs text-gray-400">Your expense trends</p>
         </header>
 
-        <ExpenseChart :data="expenseByCategory" :loading="isLoading" />
+        <ExpenseChart :data="expenseSummary" :loading="isDashboardLoading" />
       </div>
     </section>
   </app-layout>
@@ -119,35 +119,20 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/app/AppLayout.vue'
 import ExpenseChart from '@/components/chart/ExpenseChart.vue'
-import api from '@/services/api'
-import type {
-  AccountWithDetails,
-  TransactionWithDetails,
-  CategoryExpenseSummary,
-} from '../../../../api/src/types'
 import type { AccordionItem } from '@nuxt/ui'
 import { onMounted, ref } from 'vue'
-import axios from 'axios'
-import { useAccountStore } from '@/stores/account.store'
-import { useCategoryStore } from '@/stores/category.store'
 import { useDashboardData } from '@/composables/fetchDashBoardData'
+import { useCategoryStore } from '@/stores/category.store'
+import api from '@/services/api'
+import axios from 'axios'
+
+const categoryStore = useCategoryStore()
 
 const items = ref<AccordionItem[]>([
   {
     label: 'Total Balance',
   },
 ])
-
-const accountStore = useAccountStore()
-const categoryStore = useCategoryStore()
-const accountSummary = ref<{ accounts: AccountWithDetails[]; totalBalance: number }>({
-  accounts: [],
-  totalBalance: 0,
-})
-const recentTransactions = ref<TransactionWithDetails[]>([])
-const expenseByCategory = ref<CategoryExpenseSummary[]>([])
-const isLoading = ref<boolean>(false)
-const fetchError = ref<string | null>(null)
 
 const {
   isDashboardLoading,
@@ -206,35 +191,25 @@ const getTransactionAmountColor = (transactionType: string) => {
 }
 
 onMounted(async () => {
-  const endPoints = [
-    '/accounts/fetch',
-    '/transactions/recent',
-    'transactions/expenses_aggregrate',
-    'category/fetch',
-  ]
-  isLoading.value = true
-  fetchError.value = null
+  await refreshDashboard()
+  const endPoints = ['category/fetch_expense', 'category/fetch_income']
+
+  isDashboardLoading.value = true
+  dashBoardError.value = null
   axios
     .all(endPoints.map((endpoint) => api.get(endpoint)))
     .then(
-      axios.spread(
-        (accountsResponse, transactionsResponse, expenseSummaryResponse, categoryResponse) => {
-          accountSummary.value = accountsResponse.data.data
-          recentTransactions.value = transactionsResponse.data.data
-          expenseByCategory.value = expenseSummaryResponse.data.data
-
-          //
-          accountStore.setAccounts(accountsResponse.data.data.accounts)
-          categoryStore.setCategories(categoryResponse.data.data)
-        },
-      ),
+      axios.spread((expenseCategoryResponse, incomeCategoryResponse) => {
+        categoryStore.setCategories(expenseCategoryResponse.data.data, 'expense')
+        categoryStore.setCategories(incomeCategoryResponse.data.data, 'income')
+      }),
     )
     .catch((errors) => {
       console.error('Error fetching data:', errors)
-      fetchError.value = 'There was an error fetching account data.'
+      dashBoardError.value = 'There was an error fetching account data.'
     })
     .finally(() => {
-      isLoading.value = false
+      isDashboardLoading.value = false
     })
 })
 </script>

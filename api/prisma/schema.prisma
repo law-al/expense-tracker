@@ -95,14 +95,15 @@ model TransactionType {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  name      String   @unique
-  icon      String?
-  color     String?
-  parentId  Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  userId            Int?
+  name              String   @unique
+  icon              String?
+  transactionTypeId Int      @default(1)
+  color             String?
+  parentId          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   transactions Transaction[]
   budgets      Budget[]

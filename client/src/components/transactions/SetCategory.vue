@@ -50,15 +50,20 @@
     </template>
   </UDrawer>
 
-  <set-expense :open-expense-view="openExpense" @close-expense-view="openExpense = false" />
+  <set-expense
+    :open-expense-view="openRecordTransactionModal"
+    @close-expense-view="openRecordTransactionModal = false"
+  />
 </template>
 
 <script setup lang="ts">
 import type { Category } from '../../../../api/src/types'
 import { useCategoryStore } from '@/stores/category.store'
 import { storeToRefs } from 'pinia'
-import { ref, watch } from 'vue'
-import SetExpense from './SetExpense.vue'
+import { computed, ref, watch } from 'vue'
+import SetExpense from './RecordTransaction.vue'
+import { useTransactionStore } from '@/stores/transaction.store'
+import { useGlobalStore } from '@/stores/global.store'
 
 // props from parent component (SetAccount.vue)
 const props = defineProps<{
@@ -70,14 +75,23 @@ const emit = defineEmits<{
   (e: 'closeCategoryView'): void
 }>()
 
+const globalStore = useGlobalStore()
+// Use global store state for category modal visibility
+const { openRecordTransactionModal } = storeToRefs(globalStore)
 const categoryStore = useCategoryStore()
-const { categories } = storeToRefs(categoryStore)
+const { expenseCategories, incomeCategories } = storeToRefs(categoryStore)
 // To open the expense session
-const openExpense = ref<boolean>(false)
+const transactionStore = useTransactionStore()
+
+const categories = computed(() =>
+  transactionStore.selectedTransactionType === 'income'
+    ? incomeCategories.value
+    : expenseCategories.value,
+)
 
 const handleOpenAndSet = async (category: Category) => {
   categoryStore.setCategory(category)
-  openExpense.value = true
+  openRecordTransactionModal.value = true
   try {
     await categoryStore.getSubCategoriesById(category.id)
   } catch (error) {

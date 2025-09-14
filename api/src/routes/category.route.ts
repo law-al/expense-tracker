@@ -3,14 +3,20 @@ import { protect } from '../middleware/protect.middleware.js';
 import { asyncHandler } from '../utils/catch-async.js';
 import {
   createSubCategory,
-  getCategories,
+  getExpenseCategories,
+  getIncomeCategories,
   getSubCategoriesById,
 } from '../controllers/category.controller.js';
 
 const categoryRoute: Router = Router();
 
 categoryRoute.post('/create', protect, asyncHandler(createSubCategory));
-categoryRoute.get('/fetch', protect, asyncHandler(getCategories));
+categoryRoute.get(
+  '/fetch_expense',
+  protect,
+  asyncHandler(getExpenseCategories)
+);
+categoryRoute.get('/fetch_income', protect, asyncHandler(getIncomeCategories));
 categoryRoute.get(
   '/subcategory/:id',
   protect,

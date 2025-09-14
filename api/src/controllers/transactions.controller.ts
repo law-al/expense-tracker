@@ -77,13 +77,13 @@ export const createTransaction = async (
   //STEP: Check the trasaction type and update the account balance accordingly
   let newBalance: number;
 
-  if (transactionType.name.toLowerCase() === 'income') {
+  if (transactionType.id === 2) {
     newBalance = 0 + Number(req.body.amount);
-  } else if (transactionType.name.toLowerCase() === 'expense') {
+  } else if (transactionType.id === 1) {
     newBalance = 0 - Number(req.body.amount);
   }
 
-  // FIXME: Work on adding subcategory
+  // STEP: Work on adding subcategory
 
   //STEP: Create transaction and update account balance in a single transaction
   await prismaClient.$transaction(async (tx) => {

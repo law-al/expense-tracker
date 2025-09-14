@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { toRef } from 'vue'
 import type {
   TransactionWithDetails,
   AccountWithDetails,
@@ -7,64 +7,61 @@ import type {
 import axios from 'axios'
 import api from '@/services/api'
 import { useAccountStore } from '@/stores/account.store'
-import { useCategoryStore } from '@/stores/category.store'
+import { reactive } from 'vue'
 
-interface AccountsOverviewData {
-  accounts: AccountWithDetails[]
-  totalBalance: number
-}
+const sharedState = reactive({
+  createdAt: new Date(),
+  isDashboardLoading: false as boolean,
+  dashBoardError: null as string | null,
+  accountsOverview: { accounts: [] as AccountWithDetails[], totalBalance: 0 },
+  recentTransactions: [] as TransactionWithDetails[],
+  expenseByCategory: [] as CategoryExpenseSummary[],
+})
 
 export const useDashboardData = () => {
-  const isDashboardLoading = ref<boolean>(false)
-  const dashBoardError = ref<string | null>(null)
-  const accountsOverview = ref<AccountsOverviewData>({
-    accounts: [],
-    totalBalance: 0,
-  })
-  const recentTransactions = ref<TransactionWithDetails[]>([])
-  const expenseByCategory = ref<CategoryExpenseSummary[]>([])
   const accountStore = useAccountStore()
-  const categoryStore = useCategoryStore()
 
   const refreshDashboard = async () => {
+    sharedState.createdAt = new Date()
+
+    console.log('Refreshing dashboard data...')
     const endPoints = [
       '/accounts/fetch',
       '/transactions/recent',
       'transactions/expenses_aggregrate',
-      'category/fetch',
     ]
 
-    isDashboardLoading.value = true
-    dashBoardError.value = null
+    sharedState.isDashboardLoading = true
+    sharedState.dashBoardError = null
     axios
       .all(endPoints.map((endpoint) => api.get(endpoint)))
       .then(
-        axios.spread(
-          (accountsResponse, transactionsResponse, expenseSummaryResponse, categoryResponse) => {
-            accountsOverview.value = accountsResponse.data.data
-            recentTransactions.value = transactionsResponse.data.data
-            expenseByCategory.value = expenseSummaryResponse.data.data
+        axios.spread((accountsResponse, transactionsResponse, expenseSummaryResponse) => {
+          sharedState.accountsOverview = accountsResponse.data.data
+          sharedState.recentTransactions = transactionsResponse.data.data
+          sharedState.expenseByCategory = expenseSummaryResponse.data.data
 
-            accountStore.setAccounts(accountsResponse.data.data.accounts)
-            categoryStore.setCategories(categoryResponse.data.data)
-          },
-        ),
+          accountStore.setAccounts(accountsResponse.data.data.accounts)
+        }),
       )
       .catch((errors) => {
         console.error('Error fetching data:', errors)
-        dashBoardError.value = 'There was an error fetching account data.'
+        sharedState.dashBoardError = 'There was an error fetching account data.'
       })
       .finally(() => {
-        isDashboardLoading.value = false
+        sharedState.isDashboardLoading = false
       })
+
+    console.log('Dashboard data refreshed.')
+    console.log('Shared State:', sharedState)
   }
 
   return {
-    isDashboardLoading,
-    dashBoardError,
-    accountsOverview,
-    recentTransactions,
-    expenseByCategory,
+    isDashboardLoading: toRef(sharedState, 'isDashboardLoading'),
+    dashBoardError: toRef(sharedState, 'dashBoardError'),
+    accountsOverview: toRef(sharedState, 'accountsOverview'),
+    recentTransactions: toRef(sharedState, 'recentTransactions'),
+    expenseByCategory: toRef(sharedState, 'expenseByCategory'),
     refreshDashboard,
   }
 }

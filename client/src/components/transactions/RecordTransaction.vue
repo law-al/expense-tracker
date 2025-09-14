@@ -7,8 +7,12 @@
     :dismissible="false"
     :handle="false"
     :overlay="false"
-    title="Expenses"
-    description="Enter the expense amount for this transaction."
+    :title="transactionType === 'income' ? 'Add Income' : 'Add Expense'"
+    :description="
+      transactionType === 'income'
+        ? 'Add details for your income transaction.'
+        : 'Add details for your expense transaction.'
+    "
     :ui="{
       body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0 w-[100%]',
       header: 'hidden',
@@ -26,7 +30,13 @@
           <div
             class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-500 border-t-transparent"
           ></div>
-          <p class="text-white text-lg font-light">Processing your expense...</p>
+          <p class="text-white text-lg font-light">
+            {{
+              transactionType === 'income'
+                ? 'Processing your income...'
+                : 'Processing your expense...'
+            }}
+          </p>
         </div>
       </div>
 
@@ -42,7 +52,13 @@
             <u-icon name="i-lucide-check" class="w-8 h-8 text-green-500" />
           </div>
           <h3 class="text-xl font-semibold text-white mb-2">Success!</h3>
-          <p class="text-gray-300 text-sm">Your expense has been added successfully.</p>
+          <p class="text-gray-300 text-sm">
+            {{
+              transactionType === 'income'
+                ? 'Your income has been added successfully.'
+                : 'Your expense has been added successfully.'
+            }}
+          </p>
         </div>
       </div>
 
@@ -51,17 +67,27 @@
         <div
           class="w-full flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
         >
-          <h2 class="text-white font-semibold text-lg">Expense</h2>
+          <h2 class="text-white font-semibold text-lg">
+            {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
+          </h2>
 
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="handleClose" />
         </div>
 
         <div class="">
-          <p v-show="displayError" class="text-red-500 text-sm italic block w-full text-center">
+          <p
+            v-show="displayError"
+            class="text-red-500 text-xs italic block w-full text-center mt-2"
+          >
             {{ displayError }}
           </p>
           <div class="w-full border-b border-gray-700 p-4 mt-3">
-            <span class="text-xs text-center w-full block mb-1 text-red-500">Expenses</span>
+            <span
+              class="text-xs text-center w-full block mb-1"
+              :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+            >
+              {{ transactionType === 'income' ? 'Income' : 'Expenses' }}</span
+            >
             <currency-input
               v-model="amount"
               :options="{
@@ -77,7 +103,8 @@
               }"
               placeholder="$0.00"
               :required="true"
-              class="w-full text-5xl h-[100px] bg-transparent font-extralight text-red-500 text-center focus-within:outline-none placeholder:text-gray-600 active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0"
+              class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none placeholder:text-gray-600 active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0"
+              :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
             />
           </div>
 
@@ -116,7 +143,10 @@
               </div>
 
               <!-- Select Sub Category -->
-              <div class="flex items-center gap-2 overflow-x-auto p-4 border-b border-gray-700">
+              <div
+                v-if="transactionType === 'expense'"
+                class="flex items-center gap-2 overflow-x-auto p-4 border-b border-gray-700"
+              >
                 <div
                   v-for="subCategory in categoryStore.subCategories"
                   :key="subCategory.id"
@@ -188,10 +218,13 @@ import Color from 'color'
 import { useAccountStore } from '@/stores/account.store'
 import { storeToRefs } from 'pinia'
 import { useCategoryStore } from '@/stores/category.store'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { AxiosError } from 'axios'
 import api from '@/services/api'
 import { useRouter } from 'vue-router'
+import { useDashboardData } from '@/composables/fetchDashBoardData'
+import { useTransactionStore } from '@/stores/transaction.store'
+import { useGlobalStore } from '@/stores/global.store'
 
 // props from parent component (SetCategory.vue)
 const prop = defineProps<{
@@ -209,6 +242,7 @@ const router = useRouter()
 const amount = ref<number | null>(0)
 const accountStore = useAccountStore()
 const categoryStore = useCategoryStore()
+const transactionStore = useTransactionStore()
 const { selectedAccount } = storeToRefs(accountStore)
 const { selectedCategory, selectedSubCategory } = storeToRefs(categoryStore)
 const description = ref<string>('')
@@ -216,6 +250,10 @@ const displayError = ref<string | null>('')
 const isLoading = ref<boolean>(false)
 const isSubmitting = ref<boolean>(false)
 const showSuccessModal = ref<boolean>(false)
+const { refreshDashboard } = useDashboardData()
+const globalStore = useGlobalStore()
+
+const transactionType = computed(() => transactionStore.getSeletedTransactionType)
 
 const categoryColorToHex = (setColor: string) => {
   if (!setColor) return '#000000'
@@ -249,11 +287,6 @@ const resetForm = () => {
   categoryStore.setSubCategory(null)
 }
 
-const navigateToDashboard = () => {
-  router.push('/dashboard')
-  emit('closeExpenseView')
-}
-
 const handleAddExpense = async () => {
   if (!amount.value || amount.value <= 0) {
     displayError.value = 'Please enter a valid amount greater than zero.'
@@ -267,7 +300,7 @@ const handleAddExpense = async () => {
 
     const response = await api.post('/transactions/create', {
       amount: amount.value,
-      transactionTypeId: 1,
+      transactionTypeId: transactionType.value === 'income' ? 2 : 1,
       accountId: selectedAccount.value?.id,
       categoryId: selectedCategory.value?.id,
       subCategoryId: selectedSubCategory.value?.id,
@@ -284,20 +317,24 @@ const handleAddExpense = async () => {
       resetForm()
 
       // Auto-close success modal and navigate after 3 seconds
-      setTimeout(() => {
+      setTimeout(async () => {
         showSuccessModal.value = false
-        navigateToDashboard()
+
+        await refreshDashboard()
+
+        globalStore.closeAllModals()
+
+        router.push('/dashboard')
       }, 3000)
     } else {
       displayError.value = 'Failed to add expense. Please try again.'
-      isSubmitting.value = false
     }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>
     displayError.value = axiosError.response?.data.message || 'An error occurred. Please try again.'
-    isSubmitting.value = false
   } finally {
     isLoading.value = false
+    isSubmitting.value = false
   }
 }
 

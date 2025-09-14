@@ -55,8 +55,8 @@ export const createSubCategory = async (
   });
 };
 
-// SECTION: get all categories including sub-categories and curent user subcategories
-export const getCategories = async (
+// SECTION: get expense categories including sub-categories and curent user subcategories
+export const getExpenseCategories = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -67,9 +67,11 @@ export const getCategories = async (
   const categories = await prismaClient.category.findMany({
     where: {
       parentId: null, // Only fetch parent categories
+      transactionTypeId: 1, // 1 is for expense categories
     },
     select: {
       id: true,
+      transactionTypeId: true,
       name: true,
       icon: true,
       color: true,
@@ -78,7 +80,37 @@ export const getCategories = async (
 
   res.status(HttpStatus.OK).json({
     success: true,
-    message: 'Categories fetched successfully',
+    message: 'Expense Categories fetched successfully',
+    data: categories,
+  });
+};
+
+// SECTION: get income categories including sub-categories and curent user subcategories
+export const getIncomeCategories = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) return;
+
+  // STEP: Fetch all categories including sub-categories and current user sub-categories
+  const categories = await prismaClient.category.findMany({
+    where: {
+      parentId: null, // Only fetch parent categories
+      transactionTypeId: 2, // 1 is for expense categories
+    },
+    select: {
+      id: true,
+      transactionTypeId: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  });
+
+  res.status(HttpStatus.OK).json({
+    success: true,
+    message: 'Income Categories fetched successfully',
     data: categories,
   });
 };
