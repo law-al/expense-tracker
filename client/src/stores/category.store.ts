@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Category } from '../../../api/src/types'
+import type { Category } from '@/types'
+
 import api from '@/services/api'
 
 export const useCategoryStore = defineStore('category', () => {

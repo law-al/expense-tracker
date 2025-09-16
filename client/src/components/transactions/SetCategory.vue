@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category } from '../../../../api/src/types'
+import type { Category } from '@/types'
 import { useCategoryStore } from '@/stores/category.store'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'

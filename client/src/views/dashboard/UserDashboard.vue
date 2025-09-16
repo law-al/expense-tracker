@@ -5,11 +5,11 @@
       <div class="px-4 py-2 rounded-lg mb-4 glass-card shadow-2xl">
         <UAccordion :items="items" class="h-full">
           <template #default="{ item }">
-            <span class="font-extralight text-gray-400 text-xs">
+            <span class="font-extralight text-cool-gray text-xs">
               {{ item.label }}
             </span>
             <p class="text-2xl font-semibold text-white mt-1">
-              {{ formattedCurrency(accountsOverview.totalBalance, 'USD') }}
+              {{ formatCurrency(accountsOverview.totalBalance, 'USD') }}
             </p>
           </template>
 
@@ -33,7 +33,7 @@
                 <div class="">
                   <span class="text-xs font-extralight">{{ account.accountType.name }}</span>
                   <p class="text-sm font-semibold text-white">
-                    {{ formattedCurrency(account.currentBalance || 0, account.currency) }}
+                    {{ formatCurrency(account.currentBalance || 0, account.currency) }}
                   </p>
                 </div>
               </div>
@@ -43,22 +43,23 @@
       </div>
 
       <!-- Recent transaction -->
-      <div class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl">
+      <div class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl text-soft-white">
         <header class="mb-4">
           <p class="font-semibold text-lg">Recent Transactions</p>
-          <p class="text-xs text-gray-400">Your latest transactions</p>
+          <p class="text-xs text-cool-gray">Your latest transactions</p>
         </header>
 
         <div class="flex flex-col gap-4">
           <!-- Transaction item -->
           <div v-if="recentTxns.length === 0" class="">
-            <p class="text-gray-400 text-sm">No recent transactions available.</p>
+            <p class="text-cool-gray text-sm">No recent transactions available.</p>
           </div>
           <div
             v-else
             v-for="(transaction, index) in recentTxns"
             :key="index"
-            class="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg"
+            class="flex items-center justify-between px-4 py-3 rounded-lg"
+            style="background-color: #1a1a2e"
           >
             <div class="flex items-center gap-4">
               <u-icon
@@ -70,14 +71,14 @@
                 <p class="text-sm font-semibold text-white">
                   {{ transaction.description || 'Transfer' }}
                 </p>
-                <span class="text-xs text-gray-400">{{ formattedDate(transaction.date) }}</span>
+                <span class="text-xs text-cool-gray">{{ formatDate(transaction.date) }}</span>
               </div>
             </div>
             <p
               class="text-sm font-semibold"
               :class="getTransactionAmountColor(transaction.transactionType.name)"
             >
-              {{ formattedCurrency(transaction.amount, transaction.account.currency) }}
+              {{ formatCurrency(transaction.amount, transaction.account.currency) }}
             </p>
           </div>
         </div>
@@ -87,17 +88,40 @@
       <div class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl">
         <header class="mb-4">
           <p class="font-semibold text-lg">Budgets</p>
-          <p class="text-xs text-gray-400">Your budget overview</p>
+          <p class="text-xs text-cool-gray">Your budget overview</p>
         </header>
 
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between bg-gray-800 px-4 py-3 rounded-lg">
-            <div class="flex flex-col">
-              <p class="text-sm font-semibold text-white">Monthly Groceries</p>
-              <span class="text-xs text-gray-400">Spent: $150 of $300</span>
+        <div class="flex flex-col gap-4" style="color: #94a3b8">
+          <div
+            class="flex flex-col justify-between px-4 py-3 rounded-lg"
+            style="background-color: #1a1a2e"
+          >
+            <div class="flex flex-col mb-2">
+              <p class="text-sm font-semibold text-white">Monthly Budget</p>
+              <span class="text-xs text-cool-gray"
+                >Spent: <span>{{ formatCurrency(budgets?.totalExpenses || 0) }}</span> of
+                <span>{{ formatCurrency(budgets?.totalBudgets || 0) }}</span>
+              </span>
             </div>
-            <div class="w-24 h-4 bg-gray-700 rounded-full overflow-hidden">
-              <div class="h-full bg-green-500" style="width: 50%"></div>
+            <percent-bar :percentage="budgets?.percentage || 0" />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div
+              v-for="item in budgetsByCategory"
+              :key="item.categoryId"
+              class="w-fit rounded-4xl px-2 py-2 flex items-center gap-2"
+              :style="{ background: `${colorToHex(item.category.color || '#000000')}20` }"
+            >
+              <div
+                class="w-[30px] h-[30px] rounded-full flex items-center justify-center"
+                :style="{
+                  background: `conic-gradient(${colorToHex(item.category.color || '#000000')} 0% ${item.percetage}%, #1f2937 ${item.percetage}% 100%)`,
+                }"
+              >
+                <span class="text-xs text-white font-medium">{{ item.percetage }}%</span>
+              </div>
+              <p class="text-white text-xs">{{ item.category.name }}</p>
             </div>
           </div>
         </div>
@@ -107,7 +131,7 @@
       <div class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl">
         <header class="mb-4">
           <p class="font-semibold text-lg">Expense Chart</p>
-          <p class="text-xs text-gray-400">Your expense trends</p>
+          <p class="text-xs text-cool-gray">Your expense trends</p>
         </header>
 
         <ExpenseChart :data="expenseSummary" :loading="isDashboardLoading" />
@@ -125,6 +149,8 @@ import { useDashboardData } from '@/composables/fetchDashBoardData'
 import { useCategoryStore } from '@/stores/category.store'
 import api from '@/services/api'
 import axios from 'axios'
+import { formatCurrency, formatDate } from '@/utils/formatters'
+import { colorToHex } from '@/utils/colorUtils'
 
 const categoryStore = useCategoryStore()
 
@@ -140,25 +166,10 @@ const {
   accountsOverview,
   recentTransactions: recentTxns,
   expenseByCategory: expenseSummary,
+  budgets,
+  budgetsByCategory,
   refreshDashboard,
 } = useDashboardData()
-
-// Helper functions
-const formattedCurrency = (amount: number, currency: string = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
-  }).format(amount)
-}
-
-const formattedDate = (dateString: Date) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date)
-}
 
 const getTransactionLogo = (transactionType: string) => {
   switch (transactionType) {
@@ -214,24 +225,4 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.glass-card {
-  background: rgba(26, 20, 70, 0.35); /* dark indigo tint */
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
-  pointer-events: none;
-}
-</style>
+<style scoped></style>

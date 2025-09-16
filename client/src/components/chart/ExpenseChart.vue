@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CategoryExpenseSummary } from '../../../../api/src/types'
+import type { CategoryExpenseSummary } from '@/types'
 import { ref, toRef, computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import {

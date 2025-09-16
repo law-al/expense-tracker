@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AccountWithDetails } from '../../../api/src/types'
+import type { AccountWithDetails } from '@/types'
 import { ref } from 'vue'
 import api from '@/services/api'
 import { useRouter } from 'vue-router'

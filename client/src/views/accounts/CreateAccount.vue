@@ -137,7 +137,7 @@
 import api from '@/services/api'
 import { AxiosError } from 'axios'
 import { onMounted, ref } from 'vue'
-import type { AccountType } from '../../../../api/src/types'
+import type { AccountType } from '@/types'
 import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 

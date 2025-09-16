@@ -1,14 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
 @theme {
   --color-purple-main: #6b63ff;
   --color-charcoal-gray: rgba(255, 255, 255, 0.05);
+  --color-soft-white: #f5f5f5;
+  --color-cool-gray: #94a3b8;
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(26, 20, 70, 0.35); /* dark indigo tint */
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+    pointer-events: none;
+  }
 }
 
 body {
-  color: white;
-  font-family: 'Poppins', sans-serif;
+  color: #f5f5f5;
+  font-family: 'Urbanist', sans-serif;
   background: linear-gradient(180deg, #0b0e1a, #1a1446);
 }

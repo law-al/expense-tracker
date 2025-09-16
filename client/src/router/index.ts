@@ -17,6 +17,11 @@ const router = createRouter({
       component: () => import('@/views/dashboard/UserDashboard.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/budget',
+      component: () => import('@/views/dashboard/UserBudget.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

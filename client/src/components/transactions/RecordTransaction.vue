@@ -130,14 +130,14 @@
                 <div
                   class="rounded-full border p-1"
                   :style="{
-                    backgroundColor: `${categoryColorToHex(selectedCategory?.color as string)}33`,
-                    borderColor: `${categoryColorToHex(selectedCategory?.color as string)}33`,
+                    backgroundColor: `${colorToHex(selectedCategory?.color as string)}33`,
+                    borderColor: `${colorToHex(selectedCategory?.color as string)}33`,
                   }"
                 >
                   <u-icon
                     :name="selectedCategory?.icon || ''"
                     class="size-6"
-                    :style="{ color: categoryColorToHex(selectedCategory?.color as string) }"
+                    :style="{ color: colorToHex(selectedCategory?.color as string) }"
                   />
                 </div>
               </div>
@@ -158,11 +158,11 @@
                     :style="{
                       backgroundColor:
                         selectedSubCategory?.id === subCategory.id
-                          ? `${categoryColorToHex(subCategory?.color as string)}33`
+                          ? `${colorToHex(subCategory?.color as string)}33`
                           : 'transparent',
                       borderColor:
                         selectedSubCategory?.id === subCategory.id
-                          ? `${categoryColorToHex(subCategory?.color as string)}33`
+                          ? `${colorToHex(subCategory?.color as string)}33`
                           : '#88888833',
                     }"
                   >
@@ -170,7 +170,7 @@
                       :name="subCategory.icon || ''"
                       class="size-5"
                       :style="{
-                        color: categoryColorToHex(subCategory?.color as string),
+                        color: colorToHex(subCategory?.color as string),
                       }"
                     />
                     <span class="text-xs">{{ subCategory.name }}</span>
@@ -212,9 +212,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Category } from '../../../../api/src/types'
+import type { Category } from '@/types'
 import CurrencyInput from '../inputs/CurrencyInput.vue'
-import Color from 'color'
 import { useAccountStore } from '@/stores/account.store'
 import { storeToRefs } from 'pinia'
 import { useCategoryStore } from '@/stores/category.store'
@@ -225,6 +224,7 @@ import { useRouter } from 'vue-router'
 import { useDashboardData } from '@/composables/fetchDashBoardData'
 import { useTransactionStore } from '@/stores/transaction.store'
 import { useGlobalStore } from '@/stores/global.store'
+import { colorToHex } from '@/utils/colorUtils'
 
 // props from parent component (SetCategory.vue)
 const prop = defineProps<{
@@ -254,17 +254,6 @@ const { refreshDashboard } = useDashboardData()
 const globalStore = useGlobalStore()
 
 const transactionType = computed(() => transactionStore.getSeletedTransactionType)
-
-const categoryColorToHex = (setColor: string) => {
-  if (!setColor) return '#000000'
-  try {
-    const color = Color(setColor || 'black')
-    return color.hex().toString()
-  } catch (error) {
-    console.error('Invalid color format:', error)
-    return '#000000'
-  }
-}
 
 const handleSelectSubCategory = (subCategory: Category) => {
   if (!isSubmitting.value) {

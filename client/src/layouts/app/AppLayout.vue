@@ -43,7 +43,7 @@
 
         <!-- Budgets -->
         <router-link
-          to="/budgets"
+          to="/budget"
           active-class="text-indigo-700"
           class="flex flex-col items-center justify-center gap-1"
         >
@@ -66,11 +66,14 @@
 </template>
 
 <script setup lang="ts">
-import AddTransaction from '@/components/transactions/AddTransaction.vue'
+// import AddTransaction from '@/components/transactions/AddTransaction.vue'
 import { useGlobalStore } from '@/stores/global.store'
 import { storeToRefs } from 'pinia'
+import { defineAsyncComponent, watch } from 'vue'
 
-import { watch } from 'vue'
+const AddTransaction = defineAsyncComponent(
+  () => import('@/components/transactions/AddTransaction.vue'),
+)
 
 // Drawer state
 const globalStore = useGlobalStore()

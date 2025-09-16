@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AccountWithDetails } from '../../../../api/src/types'
+import type { AccountWithDetails } from '@/types'
 import { ref, watch } from 'vue'
 import SetCategory from './SetCategory.vue'
 import { useAccountStore } from '@/stores/account.store'

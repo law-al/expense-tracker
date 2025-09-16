@@ -1,13 +1,16 @@
 import { toRef } from 'vue'
 import type {
-  TransactionWithDetails,
   AccountWithDetails,
   CategoryExpenseSummary,
-} from '../../../api/src/types'
+  Budget,
+  BudgetByCategory,
+  TransactionWithDetails,
+} from '@/types'
 import axios from 'axios'
 import api from '@/services/api'
 import { useAccountStore } from '@/stores/account.store'
 import { reactive } from 'vue'
+import { useBudgetStore } from '@/stores/budget.store'
 
 const sharedState = reactive({
   createdAt: new Date(),
@@ -16,10 +19,13 @@ const sharedState = reactive({
   accountsOverview: { accounts: [] as AccountWithDetails[], totalBalance: 0 },
   recentTransactions: [] as TransactionWithDetails[],
   expenseByCategory: [] as CategoryExpenseSummary[],
+  budgets: null as Budget | null,
+  budgetByCategory: [] as BudgetByCategory[],
 })
 
 export const useDashboardData = () => {
   const accountStore = useAccountStore()
+  const budgetStore = useBudgetStore()
 
   const refreshDashboard = async () => {
     sharedState.createdAt = new Date()
@@ -28,7 +34,9 @@ export const useDashboardData = () => {
     const endPoints = [
       '/accounts/fetch',
       '/transactions/recent',
-      'transactions/expenses_aggregrate',
+      '/transactions/expenses_aggregrate',
+      '/budget/total_budget',
+      'budget/total_budget_by_category',
     ]
 
     sharedState.isDashboardLoading = true
@@ -36,13 +44,25 @@ export const useDashboardData = () => {
     axios
       .all(endPoints.map((endpoint) => api.get(endpoint)))
       .then(
-        axios.spread((accountsResponse, transactionsResponse, expenseSummaryResponse) => {
-          sharedState.accountsOverview = accountsResponse.data.data
-          sharedState.recentTransactions = transactionsResponse.data.data
-          sharedState.expenseByCategory = expenseSummaryResponse.data.data
+        axios.spread(
+          (
+            accountsResponse,
+            transactionsResponse,
+            expenseSummaryResponse,
+            budgetResponse,
+            budgetByCategoryResponse,
+          ) => {
+            sharedState.accountsOverview = accountsResponse.data.data
+            sharedState.recentTransactions = transactionsResponse.data.data
+            sharedState.expenseByCategory = expenseSummaryResponse.data.data
+            sharedState.budgets = budgetResponse.data.data
+            sharedState.budgetByCategory = budgetByCategoryResponse.data.data
 
-          accountStore.setAccounts(accountsResponse.data.data.accounts)
-        }),
+            accountStore.setAccounts(accountsResponse.data.data.accounts)
+            budgetStore.setBudgets(budgetResponse.data.data)
+            budgetStore.setBudgetsByCategory(budgetByCategoryResponse.data.data)
+          },
+        ),
       )
       .catch((errors) => {
         console.error('Error fetching data:', errors)
@@ -62,6 +82,8 @@ export const useDashboardData = () => {
     accountsOverview: toRef(sharedState, 'accountsOverview'),
     recentTransactions: toRef(sharedState, 'recentTransactions'),
     expenseByCategory: toRef(sharedState, 'expenseByCategory'),
+    budgets: toRef(sharedState, 'budgets'),
+    budgetsByCategory: toRef(sharedState, 'budgetByCategory'),
     refreshDashboard,
   }
 }
