@@ -106,22 +106,24 @@
             <percent-bar :percentage="budgets?.percentage || 0" />
           </div>
 
-          <div class="flex items-center gap-2">
-            <div
-              v-for="item in budgetsByCategory"
-              :key="item.categoryId"
-              class="w-fit rounded-4xl px-2 py-2 flex items-center gap-2"
-              :style="{ background: `${colorToHex(item.category.color || '#000000')}20` }"
-            >
+          <div class="w-full overflow-x-scroll scrollbar-hidden">
+            <div class="flex flex-nowrap items-center gap-2 pb-2 cursor-pointer">
               <div
-                class="w-[30px] h-[30px] rounded-full flex items-center justify-center"
-                :style="{
-                  background: `conic-gradient(${colorToHex(item.category.color || '#000000')} 0% ${item.percetage}%, #1f2937 ${item.percetage}% 100%)`,
-                }"
+                v-for="item in budgetsByCategory"
+                :key="item.categoryId"
+                class="min-w-[120px] flex-shrink-0 rounded-4xl px-2 py-2 flex items-center gap-2"
+                :style="{ background: `${colorToHex(item.category.color || '#000000')}20` }"
               >
-                <span class="text-xs text-white font-medium">{{ item.percetage }}%</span>
+                <div
+                  class="w-[30px] h-[30px] rounded-full flex items-center justify-center"
+                  :style="{
+                    background: `conic-gradient(${colorToHex(item.category.color || '#000000')} 0% ${item.percetage}%, #1f2937 ${item.percetage}% 100%)`,
+                  }"
+                >
+                  <span class="text-xs text-white font-medium">{{ item.percetage }}%</span>
+                </div>
+                <p class="text-white text-xs">{{ item.category.name }}</p>
               </div>
-              <p class="text-white text-xs">{{ item.category.name }}</p>
             </div>
           </div>
         </div>
@@ -152,14 +154,13 @@ import axios from 'axios'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { colorToHex } from '@/utils/colorUtils'
 
-const categoryStore = useCategoryStore()
-
 const items = ref<AccordionItem[]>([
   {
     label: 'Total Balance',
   },
 ])
 
+const categoryStore = useCategoryStore()
 const {
   isDashboardLoading,
   dashBoardError,

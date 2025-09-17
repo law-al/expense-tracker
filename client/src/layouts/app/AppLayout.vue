@@ -1,6 +1,6 @@
 <template>
   <div class="relative h-fit max-w-[639px] overflow-scroll bg-gray-950">
-    <div class="p-4 overflow-auto mb-20">
+    <div class="p-4 overflow-auto scrollbar-hidden mb-20">
       <slot></slot>
     </div>
 
@@ -38,6 +38,7 @@
           <add-transaction
             :open-add-transaction-view="openTransactionModal"
             @close-add-transaction-view="openTransactionModal = false"
+            @finish-transaction-and-dismiss="finishTransactionAndDismiss"
           />
         </div>
 
@@ -67,17 +68,19 @@
 
 <script setup lang="ts">
 // import AddTransaction from '@/components/transactions/AddTransaction.vue'
+import AddTransaction from '@/components/transactions/AddTransaction.vue'
 import { useGlobalStore } from '@/stores/global.store'
 import { storeToRefs } from 'pinia'
-import { defineAsyncComponent, watch } from 'vue'
-
-const AddTransaction = defineAsyncComponent(
-  () => import('@/components/transactions/AddTransaction.vue'),
-)
+import { watch } from 'vue'
 
 // Drawer state
 const globalStore = useGlobalStore()
 const { openTransactionModal } = storeToRefs(globalStore)
+
+const finishTransactionAndDismiss = () => {
+  openTransactionModal.value = false
+  document.body.style.pointerEvents = 'auto'
+}
 
 watch(
   () => openTransactionModal.value,
@@ -90,5 +93,6 @@ watch(
 <style scoped>
 .bg-image {
   background: linear-gradient(180deg, #0b0e1a, #1a1446);
+  z-index: 10;
 }
 </style>

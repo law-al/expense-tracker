@@ -14,7 +14,9 @@ import { BadRequestError } from '../exceptions/bad-request.js';
 import { prismaClient } from '../utils/prisma-client.js';
 import { HttpStatus } from '../utils/http-status.js';
 
-const getPeriod = (period: string): { startDate: Date; endDate: Date } => {
+const getPeriod = (
+  period: string = 'monthly'
+): { startDate: Date; endDate: Date } => {
   let startDate: Date;
   let endDate: Date;
   const currentDate = new Date();
@@ -149,11 +151,38 @@ export const getTotalBudgetsAndExpenses = async (
     },
   });
 
+  const budgets = await prismaClient.budget.findMany({
+    where: {
+      userId: req.user.id,
+      period: 'MONTHLY',
+    },
+    select: {
+      categoryId: true,
+    },
+  });
+
+  if (budgets.length === 0) {
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      message: 'No budgets found for the specified period',
+      data: {
+        totalBudgets: 0,
+        totalExpenses: 0,
+        percentage: 0,
+      },
+    });
+  }
+
+  const budgetCategoryIds = budgets
+    .map((budget) => budget.categoryId)
+    .filter((id): id is number => id !== null); // called type predicate or type guard. is the filters is correct, the id is number and not null
+
   const totalExpenses = await prismaClient.transaction.aggregate({
     _sum: { amount: true },
     where: {
       userId: +req.user?.id,
       transactionTypeId: 1,
+      categoryId: { in: budgetCategoryIds },
       date: {
         gte: startDate,
         lte: endDate,

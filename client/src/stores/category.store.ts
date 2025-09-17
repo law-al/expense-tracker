@@ -17,7 +17,7 @@ export const useCategoryStore = defineStore('category', () => {
   //   categories.value = newCategories
   // }
 
-  const setCategory = (newCategories: Category) => {
+  const setCategory = (newCategories: Category | null) => {
     selectedCategory.value = newCategories
   }
 

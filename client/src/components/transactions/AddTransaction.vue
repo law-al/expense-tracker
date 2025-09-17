@@ -9,7 +9,8 @@
     title="Select an Account"
     description="Choose an account to associate with this transaction."
     :ui="{
-      body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0',
+      content: 'z-100',
+      body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0 ',
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0',
     }"
@@ -50,6 +51,7 @@
   <set-account
     :open-account-view="openSetAccountModal"
     @close-account-view="openSetAccountModal = false"
+    @finish-transaction-and-dismiss="finishTransactionAndDismiss"
   />
 </template>
 
@@ -59,19 +61,6 @@ import SetAccount from './SetAccount.vue'
 import { useTransactionStore } from '@/stores/transaction.store'
 import { useGlobalStore } from '@/stores/global.store'
 import { storeToRefs } from 'pinia'
-
-const props = defineProps<{
-  openAddTransactionView: boolean
-}>()
-const openAddTransactionView = ref(props.openAddTransactionView)
-const emit = defineEmits<{
-  (e: 'closeAddTransactionView'): void
-}>()
-const globalStore = useGlobalStore()
-// Use global store state for account modal visibility
-const { openSetAccountModal } = storeToRefs(globalStore)
-// to open the account
-const transactionStore = useTransactionStore()
 
 interface TransactionItem {
   name: string
@@ -92,9 +81,27 @@ const transactionItems: TransactionItem[] = [
   },
 ]
 
+const props = defineProps<{
+  openAddTransactionView: boolean
+}>()
+const openAddTransactionView = ref(props.openAddTransactionView)
+const emit = defineEmits<{
+  (e: 'closeAddTransactionView'): void
+  (e: 'finishTransactionAndDismiss'): void
+}>()
+
+const globalStore = useGlobalStore()
+const { openSetAccountModal } = storeToRefs(globalStore)
+const transactionStore = useTransactionStore()
+
 const handleOpenAndSet = (transactionType: string) => {
   openSetAccountModal.value = true
   transactionStore.setTransactionType(transactionType)
+}
+
+const finishTransactionAndDismiss = () => {
+  openSetAccountModal.value = false
+  emit('finishTransactionAndDismiss')
 }
 
 // Watch for changes in the prop and update the local ref accordingly

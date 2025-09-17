@@ -21,6 +21,7 @@ const getBudgetColor = (percentage: number) => {
   if (percentage > 41 && percentage <= 60) return '#F59E0B'
   if (percentage > 61 && percentage <= 80) return '#F97316'
   if (percentage > 81 && percentage <= 99) return '#EF4444'
+  if (percentage >= 100) return '#B91C1C'
   return 'DC2626'
 }
 </script>

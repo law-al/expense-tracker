@@ -10,6 +10,7 @@
     title="Select a Category"
     description="Choose a category to associate with this transaction."
     :ui="{
+      content: 'z-100',
       body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0 w-[100%]',
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0 w-full',
@@ -53,6 +54,7 @@
   <set-expense
     :open-expense-view="openRecordTransactionModal"
     @close-expense-view="openRecordTransactionModal = false"
+    @finish-transaction-and-dismiss="finishTransactionAndDismiss"
   />
 </template>
 
@@ -69,10 +71,10 @@ import { useGlobalStore } from '@/stores/global.store'
 const props = defineProps<{
   openCategoryView: boolean
 }>()
-const openCategoryView = ref(props.openCategoryView) // this is set once when the component load to the initial value of the prop. When the props change, this value will not change. Hence we need to watch for changes in the prop and update this value accordingly.
-// emit to parent component (SetAccount.vue)
+
 const emit = defineEmits<{
   (e: 'closeCategoryView'): void
+  (e: 'finishTransactionAndDismiss'): void
 }>()
 
 const globalStore = useGlobalStore()
@@ -82,6 +84,9 @@ const categoryStore = useCategoryStore()
 const { expenseCategories, incomeCategories } = storeToRefs(categoryStore)
 // To open the expense session
 const transactionStore = useTransactionStore()
+
+const openCategoryView = ref(props.openCategoryView) // this is set once when the component load to the initial value of the prop. When the props change, this value will not change. Hence we need to watch for changes in the prop and update this value accordingly.
+// emit to parent component (SetAccount.vue)
 
 const categories = computed(() =>
   transactionStore.selectedTransactionType === 'income'
@@ -97,6 +102,11 @@ const handleOpenAndSet = async (category: Category) => {
   } catch (error) {
     console.error('Error fetching sub-categories:', error)
   }
+}
+
+const finishTransactionAndDismiss = () => {
+  openRecordTransactionModal.value = false
+  emit('finishTransactionAndDismiss')
 }
 
 // Watch for changes in the prop and update the local ref accordingly

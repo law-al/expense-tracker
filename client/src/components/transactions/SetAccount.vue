@@ -9,6 +9,7 @@
     title="Select an Account"
     description="Choose an account to associate with this transaction."
     :ui="{
+      content: 'z-100',
       body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0',
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0',
@@ -52,6 +53,7 @@
   <set-category
     :open-category-view="openSetCategoryModal"
     @close-category-view="openSetCategoryModal = false"
+    @finish-transaction-and-dismiss="finishTransactionAndDismiss"
   />
 </template>
 
@@ -62,31 +64,32 @@ import SetCategory from './SetCategory.vue'
 import { useAccountStore } from '@/stores/account.store'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '@/stores/global.store'
+import { formatCurrency } from '@/utils/formatters'
 
 const props = defineProps<{
   openAccountView: boolean
 }>()
-const openAccountView = ref(props.openAccountView)
 const emit = defineEmits<{
   (e: 'closeAccountView'): void
+  (e: 'finishTransactionAndDismiss'): void
 }>()
 
-const accountsStore = useAccountStore()
-const { accounts } = storeToRefs(accountsStore)
 const globalStore = useGlobalStore()
 // Use global store state for category modal visibility
 const { openSetCategoryModal } = storeToRefs(globalStore)
+const accountsStore = useAccountStore()
+const { accounts } = storeToRefs(accountsStore)
 
-const formatCurrency = (value: number, currency: string = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(value)
-}
+const openAccountView = ref(props.openAccountView)
 
 const handleOpenAndSet = (account: AccountWithDetails) => {
   openSetCategoryModal.value = true
   accountsStore.setAccount(account)
+}
+
+const finishTransactionAndDismiss = () => {
+  openSetCategoryModal.value = false
+  emit('finishTransactionAndDismiss')
 }
 
 // Watch for changes in the prop and update the local ref accordingly

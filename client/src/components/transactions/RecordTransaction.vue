@@ -14,6 +14,7 @@
         : 'Add details for your expense transaction.'
     "
     :ui="{
+      content: 'z-100',
       body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0 w-[100%]',
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0 w-full',
@@ -63,7 +64,7 @@
       </div>
 
       <!-- Main Content -->
-      <div class="relative" :class="{ 'pointer-events-none': isSubmitting }">
+      <div class="relative">
         <div
           class="w-full flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
         >
@@ -223,35 +224,34 @@ import api from '@/services/api'
 import { useRouter } from 'vue-router'
 import { useDashboardData } from '@/composables/fetchDashBoardData'
 import { useTransactionStore } from '@/stores/transaction.store'
-import { useGlobalStore } from '@/stores/global.store'
 import { colorToHex } from '@/utils/colorUtils'
 
 // props from parent component (SetCategory.vue)
 const prop = defineProps<{
   openExpenseView: boolean
 }>()
-const openExpenseView = ref(prop.openExpenseView)
+
 // emit from parent component (SetCategory.vue)
 const emit = defineEmits<{
   (e: 'closeExpenseView'): void
+  (e: 'finishTransactionAndDismiss'): void
 }>()
 
-const router = useRouter()
-
-// const amount = ref<number | null>(0)
-const amount = ref<number | null>(0)
 const accountStore = useAccountStore()
-const categoryStore = useCategoryStore()
-const transactionStore = useTransactionStore()
 const { selectedAccount } = storeToRefs(accountStore)
+const categoryStore = useCategoryStore()
 const { selectedCategory, selectedSubCategory } = storeToRefs(categoryStore)
+const transactionStore = useTransactionStore()
+const router = useRouter()
+const { refreshDashboard } = useDashboardData()
+
+const amount = ref<number | null>(0)
 const description = ref<string>('')
 const displayError = ref<string | null>('')
 const isLoading = ref<boolean>(false)
 const isSubmitting = ref<boolean>(false)
 const showSuccessModal = ref<boolean>(false)
-const { refreshDashboard } = useDashboardData()
-const globalStore = useGlobalStore()
+const openExpenseView = ref(prop.openExpenseView)
 
 const transactionType = computed(() => transactionStore.getSeletedTransactionType)
 
@@ -308,10 +308,8 @@ const handleAddExpense = async () => {
       // Auto-close success modal and navigate after 3 seconds
       setTimeout(async () => {
         showSuccessModal.value = false
-
+        emit('finishTransactionAndDismiss')
         await refreshDashboard()
-
-        globalStore.closeAllModals()
 
         router.push('/dashboard')
       }, 3000)
