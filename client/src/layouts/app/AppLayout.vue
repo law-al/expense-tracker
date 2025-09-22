@@ -1,10 +1,10 @@
 <template>
-  <div class="relative h-fit max-w-[639px] overflow-scroll bg-gray-950">
-    <div class="p-4 overflow-auto scrollbar-hidden mb-20">
+  <div class="h-screen max-w-[639px] overflow-scroll bg-gray-950 flex flex-col justify-around">
+    <div class="h-full p-4 overflow-auto scrollbar-hidden">
       <slot></slot>
     </div>
 
-    <footer class="fixed bottom-0 left-0 w-full max-w-[639px] bg-image p-4">
+    <footer class="w-full max-w-[639px] bg-image p-4">
       <div class="w-full h-[50px] flex items-center justify-around text-white">
         <!-- Home -->
         <router-link
@@ -34,12 +34,6 @@
           >
             <u-icon name="i-mynaui-plus" class="size-8" />
           </div>
-
-          <add-transaction
-            :open-add-transaction-view="openTransactionModal"
-            @close-add-transaction-view="openTransactionModal = false"
-            @finish-transaction-and-dismiss="finishTransactionAndDismiss"
-          />
         </div>
 
         <!-- Budgets -->
@@ -53,29 +47,42 @@
         </router-link>
 
         <!-- Accounts -->
-        <router-link
-          to="/accounts"
-          active-class="text-indigo-700"
-          class="flex flex-col items-center justify-center gap-1"
+        <div
+          @click="openMenuModal = true"
+          class="flex flex-col items-center justify-center gap-1 cursor-pointer"
         >
-          <u-icon name="i-ic-sharp-account-box" class="size-6" />
-          <p class="text-xs">Accounts</p>
-        </router-link>
+          <u-icon name="i-ri-menu-3-line" class="size-6" />
+          <p class="text-xs">Menu</p>
+        </div>
       </div>
     </footer>
   </div>
+
+  <!-- Add Transaction modal -->
+  <add-transaction
+    :open-add-transaction-view="openTransactionModal"
+    @close-add-transaction-view="openTransactionModal = false"
+    @finish-transaction-and-dismiss="finishTransactionAndDismiss"
+  />
+
+  <!-- Menu modal -->
+  <user-menu :open-menu-modal="openMenuModal" @close-menu-modal="openMenuModal = false" />
 </template>
 
 <script setup lang="ts">
 // import AddTransaction from '@/components/transactions/AddTransaction.vue'
+import UserMenu from '@/components/menu/UserMenu.vue'
 import AddTransaction from '@/components/transactions/AddTransaction.vue'
 import { useGlobalStore } from '@/stores/global.store'
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 import { watch } from 'vue'
 
 // Drawer state
 const globalStore = useGlobalStore()
 const { openTransactionModal } = storeToRefs(globalStore)
+
+const openMenuModal = ref<boolean>(false)
 
 const finishTransactionAndDismiss = () => {
   openTransactionModal.value = false

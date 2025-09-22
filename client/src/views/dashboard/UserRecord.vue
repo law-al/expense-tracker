@@ -1,17 +1,14 @@
 <template>
   <app-layout>
     <div class="min-h-[85vh]">
-      <h1 class="text-2xl font-bold pb-4 border-b border-gray-700">User Record</h1>
-
-      <!-- Loading -->
-      <div v-if="isLoading" class="flex justify-center items-center h-96">
-        <div class="">
-          <p>Loading</p>
-        </div>
+      <div class="w-full">
+        <h2 class="text-xl font-light pb-4 border-b border-gray-700">User Record</h2>
       </div>
 
-      <!-- User record content goes here -->
+      <!-- Loading -->
+      <loading-modal :is-submitting="isLoading" />
 
+      <!-- User record content goes here -->
       <div class="flex flex-col gap-2">
         <div
           v-for="transaction in getTransactionHistory"
@@ -62,7 +59,7 @@ import { colorToHex } from '@/utils/colorUtils'
 import { formatCurrency } from '@/utils/formatters'
 import type { AxiosError } from 'axios'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 
 const transactionStore = useTransactionStore()
 const { getTransactionHistory } = storeToRefs(transactionStore)
@@ -85,11 +82,14 @@ const setAmountColor = (transactionTypeId: number) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   try {
     isLoading.value = true
     fetchErrorMessage.value = ''
-    transactionStore.fetchTransactionHistory()
+
+    await nextTick()
+
+    await transactionStore.fetchTransactionHistory()
   } catch (error) {
     if (error instanceof Error) {
       fetchErrorMessage.value = error.message

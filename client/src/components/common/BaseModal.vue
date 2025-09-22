@@ -10,16 +10,16 @@
     title="Select an Account"
     description="Choose an account to associate with this transaction."
     :ui="{
-      content: 'z-100',
-      body: 'bg-transparent !ring-0 !rounded-none !border-0 !p-0 !mt-0',
+      content: 'z-100 h-screen bg-gray-950',
+      body: 'h-screen',
       header: 'hidden',
-      container: `!rounded-none !border-0 !p-0 ${direction === 'right' || direction === 'left' ? 'w-[100%]' : ''}`,
+      container: `p-0 ${direction === 'right' || direction === 'left' ? 'w-[100%]' : ''}`,
     }"
-    class="!w-[100%] !max-w-[100%] !h-[100%] !max-h-[100%] bg-gray-950 !border-0 !ring-0 text-white !p-0 !mt-0"
+    class="!w-[100%] !max-w-[100%] !h-screen !max-h-screen !ring-0 text-white !p-0 !mt-0"
   >
     <template #body>
       <div
-        class="w-full flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
+        class="w-full h-[10vh] flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
       >
         <h2 class="text-white font-semibold text-lg">
           <slot name="title"></slot>

@@ -22,131 +22,6 @@
         >
           <u-icon name="i-mdi-plus" class="size-6 text-soft-white" />
         </div>
-
-        <!-- Create Budget Modal -->
-        <base-modal :open-modal="openModal" direction="bottom" @close-modal="handleCloseModal">
-          <template #title>
-            <p>Create a Budget</p>
-          </template>
-
-          <template #main>
-            <span
-              v-if="fetchErrorMessage"
-              class="text-center text-red-500 italic text-xs block w-full py-2"
-            >
-              {{ fetchErrorMessage }}</span
-            >
-            <div class="">
-              <!-- Budget Amount Input -->
-              <div class="w-full border-b border-gray-700 p-4 mt-3">
-                <span class="text-xs text-center w-full block mb-1 text-soft-white">
-                  Monthly Budget (required)
-                </span>
-                <currency-input
-                  v-model="budgetAmount"
-                  :options="{
-                    locale: 'en-US',
-                    currency: 'USD',
-                    valueRange: {},
-                    hideCurrencySymbolOnFocus: true,
-                    hideGroupingSeparatorOnFocus: true,
-                    hideNegligibleDecimalDigitsOnFocus: true,
-                    autoDecimalDigits: true,
-                    useGrouping: false,
-                    accountingSign: false,
-                  }"
-                  placeholder="$0.00"
-                  :required="true"
-                  class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0 text-white placeholder:text-cool-gray"
-                />
-              </div>
-
-              <!-- Budget Period -->
-              <div class="px-4 mt-4 border-b border-gray-700 pb-4">
-                <p class="text-sm text-cool-gray mb-1">Budget Period (required)</p>
-                <u-select
-                  v-model="selectedPeriod"
-                  :items="items"
-                  size="lg"
-                  :ui="{
-                    base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-transparent bg-gray-950 z-[100]',
-                    item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
-                    content: 'bg-gray-950 text-white rounded-md z-[100]',
-                  }"
-                  class="!w-full"
-                />
-              </div>
-
-              <!-- Add name input -->
-              <div class="my-2 px-4 border-b border-gray-700 pb-4">
-                <p class="text-sm text-cool-gray mb-1">Name (required)</p>
-                <input
-                  type="text"
-                  v-model="budgetName"
-                  placeholder="e.g., Groceries, Entertainment"
-                  class="w-full bg-gray-900 text-white placeholder:text-cool-gray rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                />
-              </div>
-
-              <!-- Category Selection -->
-              <div class="">
-                <!-- Select Category Button -->
-                <div
-                  @click="openCategoryModal = true"
-                  class="flex items-center justify-between p-4 border-b border-gray-700 cursor-pointer text-gray-500 hover:text-soft-white"
-                >
-                  <p class="text-sm mb-2">Select Category</p>
-                  <u-icon name="i-lsicon-right-filled" class="size-5" />
-                </div>
-
-                <!-- Selected Category Display -->
-                <div v-if="selectedCategory" class="mt-3 border-b border-gray-700 pb-4">
-                  <p class="text-sm text-cool-gray px-4 mt-2 mb-1">Selected Category</p>
-                  <div
-                    class="flex items-center gap-4 px-4 py-4 cursor-pointer text-gray-400 hover:text-gray-200"
-                  >
-                    <div class="border border-gray-700 rounded-lg p-1 bg-white/10">
-                      <u-icon :name="selectedCategory.icon || ''" class="size-6" />
-                    </div>
-                    <div class="">
-                      <p class="text-sm">{{ selectedCategory.name }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Note Section -->
-              <div class="mt-4 px-4">
-                <p class="text-sm text-cool-gray mb-1">Note (optional)</p>
-                <textarea
-                  rows="3"
-                  placeholder="Add a note..."
-                  class="w-full bg-gray-900 text-white placeholder:text-cool-gray rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-indigo-600 resize-none"
-                ></textarea>
-              </div>
-            </div>
-
-            <!-- Create Budget Button -->
-            <div class="mt-10 px-4">
-              <u-button
-                :disabled="!budgetAmount || !selectedCategory || isSubmitting || !budgetName"
-                :loading="isSubmitting"
-                @click="handleCreateBudget"
-                class="w-full rounded-sm py-3 text-white justify-center cursor-pointer !bg-indigo-700 hover:bg-indigo-800 disabled:!bg-indigo-400"
-              >
-                Create Budget
-              </u-button>
-            </div>
-
-            <!-- Budget Category Modal -->
-            <div class="">
-              <budget-category
-                :open-modal="openCategoryModal"
-                @close-modal="openCategoryModal = false"
-              />
-            </div>
-          </template>
-        </base-modal>
       </header>
 
       <!-- Main Content Area -->
@@ -186,6 +61,7 @@
             <p class="text-center text-cool-gray">Click the + button to add a budget.</p>
           </div>
 
+          <!-- Budget Summary -->
           <div v-else class="w-full mb-8">
             <div class="flex items-baseline justify-between mb-2">
               <p class="text-soft-white text-lg font-light">
@@ -225,35 +101,40 @@
       </main>
     </div>
   </app-layout>
+
+  <!-- Create Budget Modal -->
+  <create-budget
+    :open-modal="openModal"
+    :is-submitting="isSubmitting"
+    @close-budget-modal="handleCloseModal"
+    @submitting-status="(status: boolean) => (isSubmitting = status)"
+    @success-status="(status: boolean) => (showSuccessModal = status)"
+  />
 </template>
 
 <script setup lang="ts">
 import BudgetCard from '@/components/budget/BudgetCard.vue'
-import BudgetCategory from '@/components/budget/BudgetCategory.vue'
-import BaseModal from '@/components/common/BaseModal.vue'
+import CreateBudget from '@/components/budget/CreateBudget.vue'
 import SuccessModal from '@/components/common/SuccessModal.vue'
 import { useDashboardData } from '@/composables/fetchDashBoardData'
-import api from '@/services/api'
 import { useBudgetStore } from '@/stores/budget.store'
 import { useCategoryStore } from '@/stores/category.store'
 import { formatCurrency } from '@/utils/formatters'
 import type { AxiosError } from 'axios'
 import { storeToRefs } from 'pinia'
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 
 const categoryStore = useCategoryStore()
-const { selectedCategory } = storeToRefs(categoryStore)
 const budgetStore = useBudgetStore()
 const { getBudgets, getBudgetsByCategory } = storeToRefs(budgetStore)
 const { refreshDashboard } = useDashboardData()
 
 const openModal = ref<boolean>(false)
-const openCategoryModal = ref<boolean>(false)
 const budgetAmount = ref<number | null>(null)
 const isSubmitting = ref<boolean>(false)
 const showSuccessModal = ref<boolean>(false)
 const fetchErrorMessage = ref<string | null>(null)
-const budgetName = ref<string>()
+
 const items = ref([
   {
     label: 'Daily',
@@ -273,7 +154,6 @@ const items = ref([
   },
 ])
 const period = ref('monthly')
-const selectedPeriod = ref('monthly')
 
 const handleCloseModal = () => {
   openModal.value = false
@@ -283,40 +163,16 @@ const handleCloseModal = () => {
 
 const handleCloseSuccessModal = () => {
   showSuccessModal.value = false
+  period.value = 'monthly'
+  budgetAmount.value = null
   refreshDashboard()
-}
-
-const handleCreateBudget = async () => {
-  const value = {
-    amount: budgetAmount.value as number,
-    categoryId: selectedCategory.value?.id as number,
-    period: selectedPeriod.value.toUpperCase(),
-    name: budgetName.value,
-  }
-  try {
-    isSubmitting.value = true
-    fetchErrorMessage.value = null
-    const response = await api.post('/budget/create', value)
-
-    if (response.status === 201) {
-      isSubmitting.value = false
-      openModal.value = false
-      budgetAmount.value = null
-      categoryStore.setCategory(null)
-      showSuccessModal.value = true
-    }
-  } catch (error: unknown) {
-    const axiosError = error as AxiosError<{ message: string }>
-    fetchErrorMessage.value =
-      axiosError.response?.data?.message || 'There was an error submitting the form.'
-  } finally {
-    isSubmitting.value = false
-  }
 }
 
 watch(period, async (newValue) => {
   try {
     fetchErrorMessage.value = null
+    isSubmitting.value = true
+    await nextTick()
     await budgetStore.fetchBudgets(newValue)
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -326,6 +182,8 @@ watch(period, async (newValue) => {
       fetchErrorMessage.value =
         axiosError.response?.data?.message || 'There was an error fetching budget data.'
     }
+  } finally {
+    isSubmitting.value = false
   }
 })
 

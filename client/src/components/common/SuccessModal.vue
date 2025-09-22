@@ -6,7 +6,7 @@
     <div
       class="glass-card text-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl text-center max-w-sm w-[90%]"
     >
-      <slot>
+      <slot name="main">
         <div
           class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4"
         >
