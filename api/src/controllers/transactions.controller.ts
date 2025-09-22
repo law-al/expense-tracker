@@ -9,6 +9,29 @@ import {
   CreateTransferTransactionSchema,
 } from '../schema/transactions.schema.js';
 import { UnAuthorizedError } from '../exceptions/unauthorized.js';
+import { format, startOfYear, endOfYear } from 'date-fns';
+import type { Transaction } from '../types/index.js';
+
+interface AggregrateData {
+  categoryId: number | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  totalAmount: number | null;
+}
+
+interface TransactionHistory {
+  date: string;
+  transactions: (Pick<Transaction, 'date' | 'description' | 'amount'> & {
+    transactionType: Pick<Transaction['transactionType'], 'id'>;
+    account: Pick<Transaction['account'], 'accountType'>;
+    category: Pick<Transaction['category'], 'name' | 'color' | 'icon'>;
+  })[];
+}
+
+const formatDate = (date: Date) => {
+  const dateToFormat = new Date(date);
+  return format(dateToFormat, 'dd MMMM yyyy');
+};
 
 //SECTION: Create transaction
 export const createTransaction = async (
@@ -189,6 +212,7 @@ export const createTransferTransaction = async (
         accountId: transferFromAccount.id,
         amount: +req.body.amount,
         transactionTypeId: 3,
+        categoryId: 48,
         description: req.body.description,
         date: req.body.date ? new Date(req.body.date) : new Date(),
       },
@@ -197,6 +221,7 @@ export const createTransferTransaction = async (
         accountId: transferToAccount.id,
         amount: +req.body.amount,
         transactionTypeId: 4,
+        categoryId: 49,
         description: req.body.description,
         date: req.body.date ? new Date(req.body.date) : new Date(),
       },
@@ -264,12 +289,7 @@ export const getUserExpensesAggregrate = async (
   // ]
 
   //REVIEW:
-  interface AggregrateData {
-    categoryId: number | null;
-    categoryName?: string | null;
-    categoryColor?: string | null;
-    totalAmount: number | null;
-  }
+
   let aggregrateData: AggregrateData[] = [];
   if (aggregateExpenses.length > 0) {
     //STEP: find the category names for each categoryId
@@ -339,5 +359,81 @@ export const getRecentTransactions = async (
     success: true,
     message: 'Recent transactions fetched successfully',
     data: recentTransactions,
+  });
+};
+
+// SECTION: Get transaction history for the logged in user
+
+export const getTransactionHistory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) return;
+  const period = req.query?.period || 2025;
+
+  const year = new Date(+period, 0, 1);
+
+  const startDate = startOfYear(+year);
+  const endDate = endOfYear(+year);
+
+  console.log(startDate, endDate);
+
+  const transaction = await prismaClient.transaction.findMany({
+    where: {
+      userId: +req.user?.id,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      date: true,
+      description: true,
+      amount: true,
+      transactionType: {
+        select: { id: true },
+      },
+      account: {
+        select: {
+          accountType: {
+            select: { name: true },
+          },
+        },
+      },
+      category: {
+        select: {
+          name: true,
+          color: true,
+          icon: true,
+        },
+      },
+    },
+  });
+
+  const formattedTransaction = transaction.reduce((acc, tx) => {
+    const formattedDate: string = formatDate(tx.date);
+    const index = acc.findIndex((obj) => obj.date === formattedDate);
+
+    if (index < 0) {
+      const newObj: TransactionHistory = {
+        date: formattedDate,
+        transactions: [tx],
+      };
+      acc.push(newObj);
+    } else {
+      const existingObj = acc[index];
+      if (existingObj) {
+        existingObj.transactions.push(tx);
+      }
+    }
+
+    return acc;
+  }, [] as TransactionHistory[]);
+
+  res.status(HttpStatus.OK).json({
+    success: true,
+    message: 'Transaction history fetched successfully',
+    data: formattedTransaction,
   });
 };

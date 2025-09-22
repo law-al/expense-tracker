@@ -18,6 +18,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/records',
+      component: () => import('@/views/dashboard/UserRecord.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/budget',
       component: () => import('@/views/dashboard/UserBudget.vue'),
       meta: { requiresAuth: true },

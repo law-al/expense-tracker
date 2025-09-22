@@ -5,6 +5,7 @@ import {
   createTransaction,
   createTransferTransaction,
   getRecentTransactions,
+  getTransactionHistory,
   getUserExpensesAggregrate,
 } from '../controllers/transactions.controller.js';
 
@@ -22,5 +23,6 @@ transactionsRoute.get(
   asyncHandler(getUserExpensesAggregrate)
 );
 transactionsRoute.get('/recent', protect, asyncHandler(getRecentTransactions));
+transactionsRoute.get('/history', protect, asyncHandler(getTransactionHistory));
 
 export default transactionsRoute;

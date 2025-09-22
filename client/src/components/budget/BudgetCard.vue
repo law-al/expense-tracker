@@ -38,7 +38,7 @@
     <div class="flex items-center justify-between mt-2">
       <p class="text-sm text-cool-gray">-{{ formatCurrency(budget.totalExpense) }} spent</p>
       <p class="text-sm" :class="overSpent ? 'text-red-500' : 'text-soft-white'">
-        {{ formatCurrency((budget.totalBudget - budget.totalExpense) * -1) }}
+        {{ formatCurrency((budget.totalBudget - budget.totalExpense) * 1) }}
         {{ overSpent ? 'overspending' : 'left' }}
       </p>
     </div>

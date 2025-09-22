@@ -156,6 +156,7 @@ const state = ref<Partial<Schema>>({
 })
 
 type AccountTypes = Omit<AccountType, 'createdBy'>
+
 const accountTypes = ref<AccountTypes[]>([])
 const selectedAccountType = ref<AccountTypes>()
 const isOpen = ref<boolean>(false)

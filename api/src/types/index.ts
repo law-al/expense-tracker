@@ -63,3 +63,55 @@ export type Category = Prisma.CategoryGetPayload<{
     userId: true;
   };
 }>;
+
+export type Transaction = Prisma.TransactionGetPayload<{
+  select: {
+    id: true;
+    date: true;
+    description: true;
+    amount: true;
+    accountId: true;
+    categoryId: true;
+    transactionTypeId: true;
+    userId: true;
+    createdAt: true;
+    updatedAt: true;
+    account: {
+      select: {
+        id: true;
+        name: true;
+        currency: true;
+        currentBalance: true;
+        accountTypeId: true;
+        accountType: {
+          select: { name: true };
+        };
+        userId: true;
+        createdAt: true;
+        updatedAt: true;
+      };
+    };
+    category: {
+      select: {
+        id: true;
+        name: true;
+        icon: true;
+        transactionTypeId: true;
+        color: true;
+        parentId: true;
+        userId: true;
+        createdAt: true;
+        updatedAt: true;
+      };
+    };
+    transactionType: {
+      select: {
+        id: true;
+        name: true;
+        createdAt: true;
+        updatedAt: true;
+        userId: true;
+      };
+    };
+  };
+}>;

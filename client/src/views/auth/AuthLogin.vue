@@ -98,6 +98,7 @@ const toast = useToast()
 const router = useRouter()
 const userStore = useUserStore()
 const accountStore = useAccountStore()
+
 const isLoading = ref<boolean>(false)
 const errorFlag = ref<string | null>(null)
 

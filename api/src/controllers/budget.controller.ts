@@ -13,6 +13,7 @@ import {
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { prismaClient } from '../utils/prisma-client.js';
 import { HttpStatus } from '../utils/http-status.js';
+import { $Enums } from '@prisma/client';
 
 const getPeriod = (
   period: string = 'monthly'
@@ -67,7 +68,7 @@ export const createBudget = async (req: Request, res: Response) => {
     where: {
       userId: +req.user?.id,
       categoryId: req.body.categoryId,
-      period: req.body.period.toUpperCase(),
+      period: req.body.period.toUpperCase() as $Enums.BudgetPeriod,
       startDate,
       endDate,
     },
@@ -138,8 +139,11 @@ export const getTotalBudgetsAndExpenses = async (
   res: Response
 ) => {
   if (!req.user) return;
-  const period = req.query.period as string | undefined;
+  const period = req.query.period as 'daily' | 'weekly' | 'monthly' | 'yearly';
   const { startDate, endDate } = getPeriod(period || 'monthly');
+  const periodEnumValue: $Enums.BudgetPeriod = period
+    ? (period.toUpperCase() as $Enums.BudgetPeriod)
+    : $Enums.BudgetPeriod.MONTHLY;
 
   const totalBudgets = await prismaClient.budget.aggregate({
     _sum: { amount: true },
@@ -154,7 +158,7 @@ export const getTotalBudgetsAndExpenses = async (
   const budgets = await prismaClient.budget.findMany({
     where: {
       userId: req.user.id,
-      period: 'MONTHLY',
+      period: periodEnumValue,
     },
     select: {
       categoryId: true,
@@ -257,9 +261,32 @@ export const getTotalBudgetsAndExpenseByCategory = async (
     _sum: { amount: true },
   });
 
+  // NOTE: if a category has budget but no expenses, it won't be included in the expenses result which is an array of object with the result. So we need to enrich the expenses with category details and then merge with budgets
+
+  // NOTE: To enrich expenses with category details, we need to convert the array to a big object with categoryId as key and the expense object as value
+
+  const expenseMap: Record<number, number> = totalExpensesByCategory.reduce(
+    (acc, expense) => {
+      if (expense.categoryId !== null) {
+        acc[expense.categoryId] = expense._sum.amount || 0;
+      }
+      return acc;
+    },
+    {} as Record<number, number>
+  );
+
+  // expense example { '1': 500, '2': 300 } where key is categoryId and value is total expense amount
+
+  const completeExpensesByCategory = categoryId.map((id) => {
+    return {
+      categoryId: id,
+      _sum: { amount: expenseMap[id] || 0 },
+    };
+  });
+
   // STEP: Enrich expenses with category details (name, color, icon)
   const totalExpensesByCategoryWithDetails = await Promise.all(
-    totalExpensesByCategory.map(async (expense) => {
+    completeExpensesByCategory.map(async (expense) => {
       if (!expense.categoryId) return null;
       const category = await prismaClient.category.findUnique({
         where: { id: expense.categoryId },

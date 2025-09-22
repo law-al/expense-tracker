@@ -30,19 +30,17 @@
           </template>
 
           <template #main>
+            <span
+              v-if="fetchErrorMessage"
+              class="text-center text-red-500 italic text-xs block w-full py-2"
+            >
+              {{ fetchErrorMessage }}</span
+            >
             <div class="">
-              <!-- Error Message -->
-              <span
-                v-if="fetchError"
-                class="text-center text-red-500 italic text-xs block w-full py-2"
-              >
-                {{ fetchError }}
-              </span>
-
               <!-- Budget Amount Input -->
               <div class="w-full border-b border-gray-700 p-4 mt-3">
                 <span class="text-xs text-center w-full block mb-1 text-soft-white">
-                  Monthly Budget
+                  Monthly Budget (required)
                 </span>
                 <currency-input
                   v-model="budgetAmount"
@@ -63,9 +61,25 @@
                 />
               </div>
 
+              <!-- Budget Period -->
+              <div class="px-4 mt-4 border-b border-gray-700 pb-4">
+                <p class="text-sm text-cool-gray mb-1">Budget Period (required)</p>
+                <u-select
+                  v-model="selectedPeriod"
+                  :items="items"
+                  size="lg"
+                  :ui="{
+                    base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-transparent bg-gray-950 z-[100]',
+                    item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
+                    content: 'bg-gray-950 text-white rounded-md z-[100]',
+                  }"
+                  class="!w-full"
+                />
+              </div>
+
               <!-- Add name input -->
-              <div class="mt-4 px-4">
-                <p class="text-sm text-cool-gray mb-1">Name (optional)</p>
+              <div class="my-2 px-4 border-b border-gray-700 pb-4">
+                <p class="text-sm text-cool-gray mb-1">Name (required)</p>
                 <input
                   type="text"
                   v-model="budgetName"
@@ -86,10 +100,9 @@
                 </div>
 
                 <!-- Selected Category Display -->
-                <div class="mt-3">
+                <div v-if="selectedCategory" class="mt-3 border-b border-gray-700 pb-4">
                   <p class="text-sm text-cool-gray px-4 mt-2 mb-1">Selected Category</p>
                   <div
-                    v-if="selectedCategory"
                     class="flex items-center gap-4 px-4 py-4 cursor-pointer text-gray-400 hover:text-gray-200"
                   >
                     <div class="border border-gray-700 rounded-lg p-1 bg-white/10">
@@ -137,23 +150,43 @@
       </header>
 
       <!-- Main Content Area -->
-      <main class="h-full mt-3 px-2">
-        <!-- No Budgets State -->
-        <div
-          v-if="getBudgets?.totalBudgets === 0"
-          class="h-[70vh] flex flex-col justify-center items-center gap-2"
+      <main class="h-full my-2 px-2">
+        <!-- Error Message -->
+        <span
+          v-if="fetchErrorMessage"
+          class="text-center text-red-500 italic text-xs block w-full py-2"
         >
-          <p class="text-center text-cool-gray">No budgets set yet.</p>
-          <p class="text-center text-cool-gray">Click the + button to add a budget.</p>
-        </div>
+          {{ fetchErrorMessage }}</span
+        >
 
         <!-- Budgets Exist -->
-        <div v-else class="">
+        <div class="">
           <!-- Total Budget Summary -->
-          <div class="">
+          <div class="flex items-center justify-between mb-4">
             <h2 class="text-soft-white text-center mb-2">Total Budget</h2>
+            <u-select
+              v-model="period"
+              :items="items"
+              size="lg"
+              :ui="{
+                base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-indigo-600 bg-gray-950 z-[100]',
+                item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
+                content: 'bg-gray-950 text-white rounded-md z-[100]',
+              }"
+              class="!w-[150px] mb-4"
+            />
           </div>
-          <div class="w-full mb-8">
+
+          <!-- No Budgets State -->
+          <div
+            v-if="getBudgets?.totalBudgets === 0"
+            class="h-[70vh] flex flex-col justify-center items-center gap-2"
+          >
+            <p class="text-center text-cool-gray">No budgets set yet.</p>
+            <p class="text-center text-cool-gray">Click the + button to add a budget.</p>
+          </div>
+
+          <div v-else class="w-full mb-8">
             <div class="flex items-baseline justify-between mb-2">
               <p class="text-soft-white text-lg font-light">
                 {{ formatCurrency(getBudgets?.totalBudgets as number) }}
@@ -180,7 +213,7 @@
 
           <!-- Budget Cards -->
           <div class="">
-            <div class="flex flex-col gap-4 z-[9999]">
+            <div class="flex flex-col gap-4">
               <budget-card
                 v-for="budget in getBudgetsByCategory"
                 :key="budget.categoryId"
@@ -219,8 +252,28 @@ const openCategoryModal = ref<boolean>(false)
 const budgetAmount = ref<number | null>(null)
 const isSubmitting = ref<boolean>(false)
 const showSuccessModal = ref<boolean>(false)
-const fetchError = ref<string | null>(null)
+const fetchErrorMessage = ref<string | null>(null)
 const budgetName = ref<string>()
+const items = ref([
+  {
+    label: 'Daily',
+    value: 'daily',
+  },
+  {
+    label: 'Weekly',
+    value: 'weekly',
+  },
+  {
+    label: 'Monthly',
+    value: 'monthly',
+  },
+  {
+    label: 'Yearly',
+    value: 'yearly',
+  },
+])
+const period = ref('monthly')
+const selectedPeriod = ref('monthly')
 
 const handleCloseModal = () => {
   openModal.value = false
@@ -237,12 +290,12 @@ const handleCreateBudget = async () => {
   const value = {
     amount: budgetAmount.value as number,
     categoryId: selectedCategory.value?.id as number,
-    period: 'monthly',
+    period: selectedPeriod.value.toUpperCase(),
     name: budgetName.value,
   }
   try {
     isSubmitting.value = true
-    fetchError.value = null
+    fetchErrorMessage.value = null
     const response = await api.post('/budget/create', value)
 
     if (response.status === 201) {
@@ -254,12 +307,27 @@ const handleCreateBudget = async () => {
     }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>
-    fetchError.value =
+    fetchErrorMessage.value =
       axiosError.response?.data?.message || 'There was an error submitting the form.'
   } finally {
     isSubmitting.value = false
   }
 }
+
+watch(period, async (newValue) => {
+  try {
+    fetchErrorMessage.value = null
+    await budgetStore.fetchBudgets(newValue)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      fetchErrorMessage.value = error.message
+    } else {
+      const axiosError = error as AxiosError<{ message: string }>
+      fetchErrorMessage.value =
+        axiosError.response?.data?.message || 'There was an error fetching budget data.'
+    }
+  }
+})
 
 watch([isSubmitting, showSuccessModal], ([newValForSubmit, newValForSuccess]) => {
   if (newValForSubmit || newValForSuccess) {
@@ -271,6 +339,10 @@ watch([isSubmitting, showSuccessModal], ([newValForSubmit, newValForSuccess]) =>
 </script>
 
 <style scoped>
+.bg {
+  background: linear-gradient(180deg, #0b0e1a, #1a1446);
+}
+
 @keyframes scale-in {
   from {
     opacity: 0;
