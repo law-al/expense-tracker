@@ -13,12 +13,12 @@ const budgetRoute: Router = Router();
 budgetRoute.post('/create', protect, asyncHandler(createBudget));
 budgetRoute.get('/fetch', protect, asyncHandler(getBudgets));
 budgetRoute.get(
-  '/total_budget',
+  '/total-budget',
   protect,
   asyncHandler(getTotalBudgetsAndExpenses)
 );
 budgetRoute.get(
-  '/total_budget_by_category',
+  '/total-budget-by-category',
   protect,
   asyncHandler(getTotalBudgetsAndExpenseByCategory)
 );

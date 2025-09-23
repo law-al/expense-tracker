@@ -18,7 +18,7 @@ transactionsRoute.post(
   asyncHandler(createTransferTransaction)
 );
 transactionsRoute.get(
-  '/expenses_aggregrate',
+  '/expenses-aggregrate',
   protect,
   asyncHandler(getUserExpensesAggregrate)
 );

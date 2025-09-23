@@ -34,7 +34,7 @@ api.interceptors.response.use(
 
       // STEP: Attempt to refresh the token and save the token to localStorage if it exist
       try {
-        const response = await api.get('/auth/refresh_token', { withCredentials: true })
+        const response = await api.get('/auth/refresh-token', { withCredentials: true })
         const token = response.data.data.accessToken
         localStorage.setItem('token', token)
         originalRequest.headers['Authorization'] = 'Bearer ' + token

@@ -34,9 +34,9 @@ export const useDashboardData = () => {
     const endPoints = [
       '/accounts/fetch',
       '/transactions/recent',
-      '/transactions/expenses_aggregrate',
-      '/budget/total_budget',
-      'budget/total_budget_by_category',
+      '/transactions/expenses-aggregrate',
+      '/budget/total-budget',
+      'budget/total-budget-by-category',
     ]
 
     sharedState.isDashboardLoading = true

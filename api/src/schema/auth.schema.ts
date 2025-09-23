@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import { createErrorMap } from 'zod-validation-error';
+
+z.config({
+  customError: createErrorMap(),
+});
 
 export const RegisterSchema = z.object({
   username: z
@@ -9,8 +14,16 @@ export const RegisterSchema = z.object({
       /^[a-z0-9_]+$/i,
       'Username can only contain letters, numbers, and underscores'
     ),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  email: z.email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 8 characters long'),
+});
+
+export const VerifyEmailSchema = z.object({
+  email: z.email('Invalid email address'),
+  otp: z
+    .number()
+    .min(100000, 'OTP must be 6 digits')
+    .max(999999, 'OTP must be 6 digits'),
 });
 
 export const LoginSchema = z.object({

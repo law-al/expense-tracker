@@ -12,13 +12,13 @@ const categoryRoute: Router = Router();
 
 categoryRoute.post('/create', protect, asyncHandler(createSubCategory));
 categoryRoute.get(
-  '/fetch_expense',
+  '/fetch-expense',
   protect,
   asyncHandler(getExpenseCategories)
 );
-categoryRoute.get('/fetch_income', protect, asyncHandler(getIncomeCategories));
+categoryRoute.get('/fetch-income', protect, asyncHandler(getIncomeCategories));
 categoryRoute.get(
-  '/subcategory/:id',
+  '/sub-category/:id',
   protect,
   asyncHandler(getSubCategoriesById)
 );

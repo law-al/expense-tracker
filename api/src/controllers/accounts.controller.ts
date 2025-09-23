@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { CreateAccountSchema } from '../schema/accounts.schema.js';
+import { CreateAccountSchema } from '../schema/index.js';
 import type { Account, AccountType } from '@prisma/client';
 import { prismaClient } from '../utils/prisma-client.js';
 import { NotFoundError } from '../exceptions/not-found.js';
@@ -205,13 +205,6 @@ export const getAccounts = async (
 
 export const getTotalBalance = async (req: Request, res: Response) => {
   if (!req.user) return;
-
-  //STEP: Check if user has accounts
-  const accounts = await prismaClient.account.findMany({
-    where: {
-      userId: +req.user?.id,
-    },
-  });
 
   const totalBalance = await prismaClient.account.aggregate({
     where: {

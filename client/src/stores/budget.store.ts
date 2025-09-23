@@ -6,7 +6,7 @@ import { computed, ref } from 'vue'
 
 export const useBudgetStore = defineStore('budget', () => {
   let controller: AbortController | null = null
-  const endpoints = ['/budget/total_budget', 'budget/total_budget_by_category']
+  const endpoints = ['/budget/total-budget', 'budget/total-budget-by-category']
 
   const budgets = ref<Budget | null>(null)
   const budgetByCategory = ref<BudgetByCategory[]>([])

@@ -1,5 +1,9 @@
 import type { Request, Response } from 'express';
-import { LoginSchema, RegisterSchema } from '../schema/auth.schema.js';
+import {
+  LoginSchema,
+  RegisterSchema,
+  VerifyEmailSchema,
+} from '../schema/index.js';
 import { prismaClient } from '../utils/prisma-client.js';
 import { hashSync, compareSync } from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -8,37 +12,156 @@ import type { User } from '@prisma/client';
 import { NotFoundError } from '../exceptions/not-found.js';
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { JWT_SECRET, NODE_ENV } from '../../secret.js';
+import crypto from 'crypto';
+import { sendEmail } from '../utils/send-emal.js';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
 }
 
+const generateOtp = () => {
+  let otp;
+  let otpHash;
+  otp = crypto.randomInt(100000, 999999).toString();
+  otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  return { otp, otpHash };
+};
+
+// SECTION: Register user
+
 export const register = async (req: Request, res: Response) => {
   try {
-    RegisterSchema.parse(req.body);
-    await prismaClient.user.create({
-      data: {
-        username: req.body.username,
-        email: req.body.email,
-        password: hashSync(req.body.password, 12),
-      },
+    try {
+      RegisterSchema.parse(req.body);
+    } catch (error) {
+      throw error;
+    }
+
+    const { otp, otpHash } = generateOtp();
+
+    await prismaClient.$transaction(async (tx) => {
+      await tx.user.create({
+        data: {
+          username: req.body.username,
+          email: req.body.email,
+          otp: otpHash,
+          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+          isVerified: false,
+          password: hashSync(req.body.password, 12),
+        },
+      });
+
+      try {
+        await sendEmail(
+          req.body.email,
+          'Verify your email',
+          `Your OTP is ${otp}. It will expire in 10 minutes.`
+        );
+      } catch (error) {
+        throw error;
+      }
     });
 
     res.status(200).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'User registered successfully, Please verify your email',
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
 
+// SECTION: Verify email
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+  try {
+    VerifyEmailSchema.parse({ email, otp: +otp });
+  } catch (error) {
+    throw error;
+  }
+
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) throw new NotFoundError('User not found');
+
+  if (user.isVerified) throw new BadRequestError('User already verified');
+
+  const inputOtpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+  if (user.otp !== inputOtpHash) throw new BadRequestError('Invalid OTP');
+
+  if (user.otpExpiry && user.otpExpiry < new Date())
+    throw new BadRequestError('OTP has expired');
+
+  await prismaClient.user.update({
+    where: { id: user.id },
+    data: { isVerified: true, otp: null, otpExpiry: null },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Email verified successfully, you can now login',
+  });
+};
+
+// SECTION: Resend OTP
+
+export const resendOtp = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) throw new NotFoundError('User not found');
+
+  if (user.isVerified) throw new BadRequestError('User already verified');
+
+  const { otp, otpHash } = generateOtp();
+
+  await prismaClient.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: { otp: otpHash, otpExpiry: new Date(Date.now() + 10 * 60 * 1000) },
+    });
+
+    try {
+      await sendEmail(
+        req.body.email,
+        'Verify your email',
+        `Your OTP is ${otp}. It will expire in 10 minutes.`
+      );
+    } catch (error) {
+      throw new BadRequestError('Email not sent, Please try again later');
+    }
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'OTP sent to your email successfully',
+  });
+};
+
+// SECTION: Login user
+
 export const login = async (req: Request, res: Response) => {
-  LoginSchema.parse(req.body);
+  try {
+    LoginSchema.parse(req.body);
+  } catch (error) {
+    throw error;
+  }
 
   const { username, password } = req.body;
-  let user: User;
 
+  let user: User;
   try {
     user = await prismaClient.user.findFirstOrThrow({
       where: {
@@ -48,6 +171,9 @@ export const login = async (req: Request, res: Response) => {
   } catch (error) {
     throw new NotFoundError('User not found');
   }
+
+  if (!user.isVerified)
+    throw new BadRequestError('Please verify your email to login');
 
   const isMatch = compareSync(password, user.password);
 
@@ -76,6 +202,99 @@ export const login = async (req: Request, res: Response) => {
   });
 };
 
+// SECTION: Forgot password
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  const user = await prismaClient.user.findFirstOrThrow({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) throw new NotFoundError('User not found');
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  await prismaClient.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: resetTokenHash,
+        resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+  });
+
+  const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+
+  try {
+    await sendEmail(
+      user.email,
+      'Reset your password',
+      `Click the link to reset your password: ${resetUrl}. This link will expire in 10 minutes.`
+    );
+  } catch (error) {
+    throw error;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Password reset link sent to your email',
+  });
+};
+
+// SECTION: Reset password
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  if (!token || typeof token !== 'string')
+    throw new BadRequestError('Invalid or missing token');
+
+  const resetTokenHash = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  const user = await prismaClient.user.findFirst({
+    where: {
+      resetToken: resetTokenHash,
+      resetTokenExpiry: {
+        gt: new Date(),
+      },
+    },
+  });
+
+  if (!user) throw new BadRequestError('Invalid or expired token');
+
+  if (!newPassword || newPassword.length < 6)
+    throw new BadRequestError('Password must be at least 6 characters long');
+
+  await prismaClient.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashSync(newPassword, 12),
+      resetToken: null,
+      resetTokenExpiry: null,
+      passwordChangedAt: new Date(),
+    },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Password reset successfully, you can now login with new password',
+  });
+};
+
+// SECTION: Get new access token using refresh token
+
 export const getAccessToken = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
 
@@ -86,7 +305,7 @@ export const getAccessToken = async (req: Request, res: Response) => {
   try {
     decoded = jwt.verify(refreshToken, JWT_SECRET!) as IJwtPayload;
   } catch (error) {
-    throw error; // handle error in the  catch-async
+    throw error;
   }
 
   if (!decoded.id)

@@ -10,6 +10,17 @@ export const asyncHandler = (fn: Function) => {
     try {
       await fn(req, res, next);
     } catch (error: any) {
+      next(error);
+    }
+  };
+};
+
+/*
+export const asyncHandler = (fn: Function) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await fn(req, res, next);
+    } catch (error: any) {
       let exceptions: ApiError | null = null;
       if (error instanceof ApiError) {
         exceptions = error;
@@ -65,3 +76,4 @@ export const asyncHandler = (fn: Function) => {
     }
   };
 };
+*/

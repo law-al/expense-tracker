@@ -204,7 +204,7 @@ const getTransactionAmountColor = (transactionType: string) => {
 
 onMounted(async () => {
   await refreshDashboard()
-  const endPoints = ['category/fetch_expense', 'category/fetch_income']
+  const endPoints = ['category/fetch-expense', 'category/fetch-income']
 
   isDashboardLoading.value = true
   dashBoardError.value = null

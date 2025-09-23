@@ -1,6 +1,12 @@
 import { describe } from 'node:test';
 import { z } from 'zod';
 
+import { createErrorMap } from 'zod-validation-error';
+
+z.config({
+  customError: createErrorMap(),
+});
+
 export const CreateTransactionSchema = z.object({
   transactionTypeId: z.number({ error: 'Transaction type is required' }),
   accountId: z.number({ error: 'Account is required' }),

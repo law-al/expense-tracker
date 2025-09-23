@@ -35,7 +35,7 @@ export const useCategoryStore = defineStore('category', () => {
 
   const getSubCategoriesById = async (id: number) => {
     try {
-      const response = await api.get(`/category/subcategory/${id}`)
+      const response = await api.get(`/category/sub-category/${id}`)
       if (response.status === 200) {
         subCategories.value = response.data.data
       }
