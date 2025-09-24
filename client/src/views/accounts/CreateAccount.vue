@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import api from '@/services/api'
 import { AxiosError } from 'axios'
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import type { AccountType } from '@/types'
 import CreateAccountForm from '@/components/account/CreateAccountForm.vue'
 import router from '@/router'
@@ -62,6 +62,7 @@ const handleAccountCreated = () => {
 onMounted(async () => {
   try {
     isLoading.value = true
+    await nextTick()
     const response = await api.get('/accounts/types')
     if (response.status === 200) {
       accountTypes.value = response.data.data

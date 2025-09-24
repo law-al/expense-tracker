@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import {
   LoginSchema,
   RegisterSchema,
-  VerifyEmailSchema,
+  VerifyOTPSchema,
 } from '../schema/index.js';
 import { prismaClient } from '../utils/prisma-client.js';
 import { hashSync, compareSync } from 'bcrypt';
@@ -14,6 +14,7 @@ import { BadRequestError } from '../exceptions/bad-request.js';
 import { JWT_SECRET, NODE_ENV } from '../../secret.js';
 import crypto from 'crypto';
 import { sendEmail } from '../utils/send-emal.js';
+import { da } from 'zod/locales';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
@@ -27,6 +28,24 @@ const generateOtp = () => {
   return { otp, otpHash };
 };
 
+const getTokens = (id: number | string, res: Response) => {
+  const accessToken = jwt.sign({ id }, JWT_SECRET!, {
+    expiresIn: '5m',
+  });
+
+  const refreshToken = jwt.sign({ id }, JWT_SECRET!, {
+    expiresIn: '7d',
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return { accessToken, refreshToken };
+};
+
 // SECTION: Register user
 
 export const register = async (req: Request, res: Response) => {
@@ -38,9 +57,10 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const { otp, otpHash } = generateOtp();
+    let token: string | null = null;
 
     await prismaClient.$transaction(async (tx) => {
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
           username: req.body.username,
           email: req.body.email,
@@ -51,20 +71,27 @@ export const register = async (req: Request, res: Response) => {
         },
       });
 
-      try {
-        await sendEmail(
-          req.body.email,
-          'Verify your email',
-          `Your OTP is ${otp}. It will expire in 10 minutes.`
-        );
-      } catch (error) {
-        throw error;
+      token = jwt.sign({ id: user.id }, JWT_SECRET!);
+
+      if (user) {
+        try {
+          await sendEmail(
+            req.body.email,
+            'Verify your email',
+            `Your OTP is ${otp}. It will expire in 10 minutes.`
+          );
+        } catch (error) {
+          throw error;
+        }
       }
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: 'User registered successfully, Please verify your email',
+      data: {
+        accessToken: token || null,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -75,16 +102,25 @@ export const register = async (req: Request, res: Response) => {
 // SECTION: Verify email
 
 export const verifyEmail = async (req: Request, res: Response) => {
-  const { email, otp } = req.body;
+  const token = req.query.token as string;
+  const { otp } = req.body;
   try {
-    VerifyEmailSchema.parse({ email, otp: +otp });
+    VerifyOTPSchema.parse({ otp: +otp });
   } catch (error) {
     throw error;
   }
 
+  if (!token || typeof token !== 'string')
+    throw new BadRequestError('Invalid or missing token');
+
+  let decoded: IJwtPayload;
+  decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
+
+  if (!decoded.id) throw new BadRequestError('Invalid token');
+
   const user = await prismaClient.user.findFirst({
     where: {
-      email,
+      id: +decoded.id,
     },
   });
 
@@ -104,20 +140,31 @@ export const verifyEmail = async (req: Request, res: Response) => {
     data: { isVerified: true, otp: null, otpExpiry: null },
   });
 
+  const { accessToken } = getTokens(user.id, res);
+
   res.status(200).json({
     success: true,
     message: 'Email verified successfully, you can now login',
+    data: { accessToken },
   });
 };
 
 // SECTION: Resend OTP
 
 export const resendOtp = async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const token = req.query.token as string;
+
+  if (!token || typeof token !== 'string')
+    throw new BadRequestError('Invalid or missing token');
+
+  let decoded: IJwtPayload;
+  decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
+
+  if (!decoded.id) throw new BadRequestError('Invalid token');
 
   const user = await prismaClient.user.findFirst({
     where: {
-      email,
+      id: +decoded.id,
     },
   });
 
@@ -135,7 +182,7 @@ export const resendOtp = async (req: Request, res: Response) => {
 
     try {
       await sendEmail(
-        req.body.email,
+        user.email,
         'Verify your email',
         `Your OTP is ${otp}. It will expire in 10 minutes.`
       );
@@ -179,19 +226,7 @@ export const login = async (req: Request, res: Response) => {
 
   if (!isMatch) throw new BadRequestError('Invalid Credentials');
 
-  const accessToken = jwt.sign({ id: user.id }, JWT_SECRET!, {
-    expiresIn: '5m',
-  });
-
-  const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET!, {
-    expiresIn: '7d',
-  });
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: NODE_ENV === 'production',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  const { accessToken } = getTokens(user.id, res);
 
   res.status(200).json({
     success: true,

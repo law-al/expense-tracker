@@ -8,7 +8,7 @@ const accountStore = useAccountStore()
 
 onMounted(() => {
   userStore.initializeUser()
-  accountStore.getUsersAccount()
+  accountStore.fetchUsersAccount()
 })
 </script>
 

@@ -116,7 +116,7 @@ export const getIncomeCategories = async (
 };
 
 //SECTION: Get sub-categories by category id
-export const getSubCategoriesById = async (
+export const fetchSubCategoriesById = async (
   req: Request,
   res: Response,
   next: NextFunction

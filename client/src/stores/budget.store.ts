@@ -8,12 +8,15 @@ export const useBudgetStore = defineStore('budget', () => {
   let controller: AbortController | null = null
   const endpoints = ['/budget/total-budget', 'budget/total-budget-by-category']
 
+  // State
   const budgets = ref<Budget | null>(null)
   const budgetByCategory = ref<BudgetByCategory[]>([])
 
+  // Getters
   const getBudgets = computed(() => budgets.value)
   const getBudgetsByCategory = computed(() => budgetByCategory.value)
 
+  // Methods
   const setBudgets = (data: Budget | null) => {
     budgets.value = data
   }
@@ -45,6 +48,19 @@ export const useBudgetStore = defineStore('budget', () => {
       })
   }
 
+  const fetchBudgetsByCategory = async (params: string = 'monthly') => {
+    try {
+      const response = await api.get('budget/total-budget-by-category', {
+        params: { period: params },
+      })
+      if (response.status === 200) {
+        budgetByCategory.value = response.data.data
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
   return {
     budgets,
     budgetByCategory,
@@ -53,5 +69,6 @@ export const useBudgetStore = defineStore('budget', () => {
     setBudgets,
     setBudgetsByCategory,
     fetchBudgets,
+    fetchBudgetsByCategory,
   }
 })

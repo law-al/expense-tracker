@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { Category } from '@/types'
 
 import api from '@/services/api'
@@ -13,10 +13,15 @@ export const useCategoryStore = defineStore('category', () => {
   const expenseCategories = ref<Category[]>([])
   const incomeCategories = ref<Category[]>([])
 
-  // const setCategories = (newCategories: Category[]) => {
-  //   categories.value = newCategories
-  // }
+  // Getters
+  const getCategories = computed(() => categories.value)
+  const getSubCategories = computed(() => subCategories.value)
+  const getExpenseCategories = computed(() => expenseCategories.value)
+  const getIncomeCategories = computed(() => incomeCategories.value)
+  const getSelectedCategory = computed(() => selectedCategory.value)
+  const getSelectedSubCategory = computed(() => selectedSubCategory.value)
 
+  // Methods
   const setCategory = (newCategories: Category | null) => {
     selectedCategory.value = newCategories
   }
@@ -33,7 +38,29 @@ export const useCategoryStore = defineStore('category', () => {
     selectedSubCategory.value = newSubCategories
   }
 
-  const getSubCategoriesById = async (id: number) => {
+  const fetchExpenseCategories = async () => {
+    try {
+      const response = await api.get('/category/fetch-expense')
+      if (response.status === 200) {
+        expenseCategories.value = response.data.data
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const fetchIncomeCategories = async () => {
+    try {
+      const response = await api.get('/category/fetch-income')
+      if (response.status === 200) {
+        incomeCategories.value = response.data.data
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const fetchSubCategoriesById = async (id: number) => {
     try {
       const response = await api.get(`/category/sub-category/${id}`)
       if (response.status === 200) {
@@ -45,16 +72,26 @@ export const useCategoryStore = defineStore('category', () => {
   }
 
   return {
-    selectedCategory,
+    categories,
     subCategories,
-    setCategories,
     expenseCategories,
     incomeCategories,
-    setSubCategory,
+    selectedCategory,
     selectedSubCategory,
-    categories,
+
+    getCategories,
+    getSubCategories,
+    getExpenseCategories,
+    getIncomeCategories,
+    getSelectedCategory,
+    getSelectedSubCategory,
+
+    setSubCategory,
+    setCategories,
     setCategory,
 
-    getSubCategoriesById,
+    fetchExpenseCategories,
+    fetchIncomeCategories,
+    fetchSubCategoriesById,
   }
 })

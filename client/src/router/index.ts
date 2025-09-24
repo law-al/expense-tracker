@@ -6,6 +6,7 @@ const router = createRouter({
   routes: [
     { path: '/login', component: () => import('@/views/auth/AuthLogin.vue') },
     { path: '/register', component: () => import('@/views/auth/AuthRegister.vue') },
+    { path: '/verify', component: () => import('@/views/auth/AuthVerify.vue') },
     { path: '/onboarding', component: () => import('@/views/auth/OnBoarding.vue') },
     {
       path: '/create-account',

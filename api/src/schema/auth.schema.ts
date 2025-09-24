@@ -18,8 +18,7 @@ export const RegisterSchema = z.object({
   password: z.string().min(6, 'Password must be at least 8 characters long'),
 });
 
-export const VerifyEmailSchema = z.object({
-  email: z.email('Invalid email address'),
+export const VerifyOTPSchema = z.object({
   otp: z
     .number()
     .min(100000, 'OTP must be 6 digits')

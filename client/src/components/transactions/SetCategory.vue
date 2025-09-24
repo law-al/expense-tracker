@@ -98,7 +98,7 @@ const handleOpenAndSet = async (category: Category) => {
   categoryStore.setCategory(category)
   openRecordTransactionModal.value = true
   try {
-    await categoryStore.getSubCategoriesById(category.id)
+    await categoryStore.fetchSubCategoriesById(category.id)
   } catch (error) {
     console.error('Error fetching sub-categories:', error)
   }

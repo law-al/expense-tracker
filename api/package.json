@@ -5,6 +5,9 @@
   "scripts": {
     "start": "nodemon"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "type": "module",
   "keywords": [],
   "author": "",

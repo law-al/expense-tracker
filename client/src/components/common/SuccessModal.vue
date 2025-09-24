@@ -30,7 +30,8 @@
       </slot>
 
       <button
-        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors cursor-pointer"
+        v-if="showButton"
+        class="mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors cursor-pointer"
         @click="emit('closeSuccessModal')"
       >
         Done
@@ -40,9 +41,13 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  successModal: boolean
-}>()
+withDefaults(
+  defineProps<{
+    successModal: boolean
+    showButton?: boolean
+  }>(),
+  { showButton: true },
+)
 
 const emit = defineEmits<{
   (e: 'closeSuccessModal'): void

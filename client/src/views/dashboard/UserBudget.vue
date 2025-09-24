@@ -25,7 +25,7 @@
       </header>
 
       <!-- Main Content Area -->
-      <main class="h-full my-2 px-2">
+      <main class="h-[75vh] my-2 px-2">
         <!-- Error Message -->
         <span
           v-if="fetchErrorMessage"
@@ -34,28 +34,27 @@
           {{ fetchErrorMessage }}</span
         >
 
-        <!-- Budgets Exist -->
-        <div class="">
-          <!-- Total Budget Summary -->
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-soft-white text-center mb-2">Total Budget</h2>
-            <u-select
-              v-model="period"
-              :items="items"
-              size="lg"
-              :ui="{
-                base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-indigo-600 bg-gray-950 z-[100]',
-                item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
-                content: 'bg-gray-950 text-white rounded-md z-[100]',
-              }"
-              class="!w-[150px] mb-4"
-            />
-          </div>
+        <!-- Total Budget Summary -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-soft-white text-center mb-2">Total Budget</h2>
+          <u-select
+            v-model="period"
+            :items="items"
+            size="lg"
+            :ui="{
+              base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-indigo-600 bg-gray-950 z-[100]',
+              item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
+              content: 'bg-gray-950 text-white rounded-md z-[100]',
+            }"
+            class="!w-[150px] mb-4"
+          />
+        </div>
 
+        <div class="h-[60vh]">
           <!-- No Budgets State -->
           <div
             v-if="getBudgets?.totalBudgets === 0"
-            class="h-[70vh] flex flex-col justify-center items-center gap-2"
+            class="h-full flex flex-col justify-center items-center gap-2 text-sm"
           >
             <p class="text-center text-cool-gray">No budgets set yet.</p>
             <p class="text-center text-cool-gray">Click the + button to add a budget.</p>
@@ -116,18 +115,19 @@
 import BudgetCard from '@/components/budget/BudgetCard.vue'
 import CreateBudget from '@/components/budget/CreateBudget.vue'
 import SuccessModal from '@/components/common/SuccessModal.vue'
-import { useDashboardData } from '@/composables/fetchDashBoardData'
+import { useDashboardDataV2 } from '@/composables/fetchDashBoardData'
 import { useBudgetStore } from '@/stores/budget.store'
 import { useCategoryStore } from '@/stores/category.store'
 import { formatCurrency } from '@/utils/formatters'
 import type { AxiosError } from 'axios'
 import { storeToRefs } from 'pinia'
 import { nextTick, ref, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
 const categoryStore = useCategoryStore()
 const budgetStore = useBudgetStore()
 const { getBudgets, getBudgetsByCategory } = storeToRefs(budgetStore)
-const { refreshDashboard } = useDashboardData()
+const { refreshDashBoard } = useDashboardDataV2()
 
 const openModal = ref<boolean>(false)
 const budgetAmount = ref<number | null>(null)
@@ -161,11 +161,10 @@ const handleCloseModal = () => {
   budgetAmount.value = null
 }
 
-const handleCloseSuccessModal = () => {
+const handleCloseSuccessModal = async () => {
   showSuccessModal.value = false
-  period.value = 'monthly'
   budgetAmount.value = null
-  refreshDashboard()
+  budgetStore.fetchBudgetsByCategory(period.value)
 }
 
 watch(period, async (newValue) => {
@@ -193,6 +192,11 @@ watch([isSubmitting, showSuccessModal], ([newValForSubmit, newValForSuccess]) =>
   } else {
     document.body.style.overflow = 'auto'
   }
+})
+
+onBeforeRouteLeave(async () => {
+  console.log('leaving route, refreshing dashboard data')
+  await refreshDashBoard()
 })
 </script>
 

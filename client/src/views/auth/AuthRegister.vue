@@ -1,6 +1,8 @@
 <template>
   <auth-layout>
-    <div class="w-[400px]">
+    <loading-modal :is-submitting="isLoading" />
+
+    <div v-if="!isLoading" class="w-[400px]">
       <!-- Error from form submission -->
       <p v-if="errorFlag" class="text-red-500 text-sm italic mb-4 text-center w-full">
         {{ errorFlag }}
@@ -19,6 +21,7 @@
               name="username"
               :ui="{
                 error: 'text-xs text-red-500 mt-1',
+                label: 'mb-1 text-white',
               }"
             >
               <u-input
@@ -28,7 +31,7 @@
                 placeholder="Enter your username"
                 :highlight="false"
                 :ui="{
-                  base: 'w-full px-4 py-4 ring-1 ring-gray-300 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-500',
+                  base: 'w-full !bg-gray-950 text-white px-4 py-4 ring-1 ring-indigo-500 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-1 focus-visible:ring-1 focus-visible:ring-indigo-600',
                 }"
                 class="w-full bg-amber-200"
               />
@@ -40,6 +43,7 @@
               name="email"
               :ui="{
                 error: 'text-xs text-red-500 mt-1',
+                label: 'mb-1 text-white',
               }"
             >
               <u-input
@@ -49,7 +53,7 @@
                 placeholder="Enter your email"
                 v-model="state.email"
                 :ui="{
-                  base: 'w-full px-4 py-4 ring-1 ring-gray-300 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-500',
+                  base: 'w-full !bg-gray-950 text-white px-4 py-4 ring-1 ring-indigo-500 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-1 focus-visible:ring-1 focus-visible:ring-indigo-600',
                 }"
                 class="w-full"
               />
@@ -61,6 +65,7 @@
               name="password"
               :ui="{
                 error: 'text-xs text-red-500 mt-1',
+                label: 'mb-1 text-white',
               }"
             >
               <u-input
@@ -70,7 +75,7 @@
                 placeholder="Enter your password"
                 :highlight="false"
                 :ui="{
-                  base: 'w-full px-4 py-4 ring-1 ring-gray-300 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-gray-500',
+                  base: 'w-full !bg-gray-950 text-white px-4 py-4 ring-1 ring-indigo-500 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-1 focus-visible:ring-1 focus-visible:ring-indigo-600',
                 }"
                 class="w-full"
               />
@@ -88,6 +93,15 @@
             >
           </div>
         </u-form>
+
+        <div class="text-sm text-center mt-4">
+          <p>
+            Already have an account?
+            <router-link to="/login" class="text-indigo-600 hover:underline"
+              >Login here</router-link
+            >
+          </p>
+        </div>
       </div>
     </div>
   </auth-layout>
@@ -103,9 +117,13 @@ import type { AxiosError } from 'axios'
 import { useRouter } from 'vue-router'
 
 const schema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters long'),
+  username: z
+    .string({ error: 'Username is required' })
+    .min(3, 'Username must be at least 3 characters long'),
   email: z.email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  password: z
+    .string({ error: 'Password is required' })
+    .min(6, 'Password must be at least 6 characters long'),
 })
 
 type Schema = z.output<typeof schema>
@@ -116,7 +134,6 @@ const state = reactive<Partial<Schema>>({
   password: undefined,
 })
 
-const toast = useToast()
 const router = useRouter()
 const isLoading = ref<boolean>(false)
 const errorFlag = ref<string | null>(null)
@@ -125,11 +142,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
     errorFlag.value = null
     isLoading.value = true
-    await api.post('/auth/register', event.data)
+    const response = await api.post('/auth/register', event.data)
+    console.log(response)
 
-    toast.add({ title: 'Success', description: 'Signed Up successfully.', color: 'success' })
-
-    router.push('/login')
+    if (response.status === 201) {
+      console.log(response.data)
+      router.push({
+        path: '/verify',
+        query: { token: response.data.data.accessToken },
+      })
+    }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>
 

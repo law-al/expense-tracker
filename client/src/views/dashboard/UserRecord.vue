@@ -1,49 +1,57 @@
 <template>
   <app-layout>
+    <!-- Loading -->
+    <loading-modal :is-submitting="isLoading" />
+
     <div class="min-h-[85vh]">
-      <div class="w-full">
-        <h2 class="text-xl font-light pb-4 border-b border-gray-700">User Record</h2>
+      <div class="w-full h-[10vh] flex items-center">
+        <h2 class="text-xl font-light pb-4 border-b border-gray-700 w-full">User Record</h2>
       </div>
 
-      <!-- Loading -->
-      <loading-modal :is-submitting="isLoading" />
-
       <!-- User record content goes here -->
-      <div class="flex flex-col gap-2">
+      <div class="h-[75vh] overflow-scroll">
         <div
-          v-for="transaction in getTransactionHistory"
-          :key="transaction.date"
-          class="border-b border-gray-700 py-4"
+          v-if="getTransactionHistory.length === 0"
+          class="h-full flex items-center justify-center"
         >
-          <p class="text-soft-white text-sm mb-3">{{ transaction.date }}</p>
+          <p class="text-cool-gray text-sm">No transactions available.</p>
+        </div>
+        <div v-else class="flex flex-col gap-2">
           <div
-            v-for="(tx, n) in transaction.transactions"
-            :key="n"
-            class="w-full p-2 flex items-center gap-4 mb-2"
+            v-for="transaction in getTransactionHistory"
+            :key="transaction.date"
+            class="border-b border-gray-700 py-4"
           >
+            <p class="text-soft-white text-sm mb-3">{{ transaction.date }}</p>
             <div
-              class="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-              :style="{ backgroundColor: `${colorToHex(tx.category.color as string)}33` }"
+              v-for="(tx, n) in transaction.transactions"
+              :key="n"
+              class="w-full p-2 flex items-center gap-4 mb-2"
             >
-              <u-icon
-                :name="tx.category.icon || ''"
-                class="size-4"
-                :style="{ color: colorToHex(tx.category.color as string) }"
-              />
-            </div>
-
-            <div class="flex justify-between items-center flex-1">
-              <div class="">
-                <p class="text-white font-light text-sm">{{ tx.category.name }}</p>
-                <p class="text-cool-gray text-xs font-extralight">
-                  {{ tx.account.accountType.name }}
-                </p>
+              <div
+                class="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                :style="{ backgroundColor: `${colorToHex(tx.category.color as string)}33` }"
+              >
+                <u-icon
+                  :name="tx.category.icon || ''"
+                  class="size-4"
+                  :style="{ color: colorToHex(tx.category.color as string) }"
+                />
               </div>
 
-              <div class="mt-2">
-                <p class="text-sm font-semibold" :class="setAmountColor(tx.transactionType.id)">
-                  {{ formatCurrency(tx.amount) }}
-                </p>
+              <div class="flex justify-between items-center flex-1">
+                <div class="">
+                  <p class="text-white font-light text-sm">{{ tx.category.name }}</p>
+                  <p class="text-cool-gray text-xs font-extralight">
+                    {{ tx.account.accountType.name }}
+                  </p>
+                </div>
+
+                <div class="mt-2">
+                  <p class="text-sm font-semibold" :class="setAmountColor(tx.transactionType.id)">
+                    {{ formatCurrency(tx.amount) }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

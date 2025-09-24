@@ -5,7 +5,7 @@ import {
   createSubCategory,
   getExpenseCategories,
   getIncomeCategories,
-  getSubCategoriesById,
+  fetchSubCategoriesById,
 } from '../controllers/category.controller.js';
 
 const categoryRoute: Router = Router();
@@ -20,7 +20,7 @@ categoryRoute.get('/fetch-income', protect, asyncHandler(getIncomeCategories));
 categoryRoute.get(
   '/sub-category/:id',
   protect,
-  asyncHandler(getSubCategoriesById)
+  asyncHandler(fetchSubCategoriesById)
 );
 
 export default categoryRoute;

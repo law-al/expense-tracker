@@ -1,7 +1,7 @@
 <template>
   <u-slideover
     title="Add Account"
-    :close="{ onClick: () => emit('closeAccountForm') }"
+    :close="{ onClick: handleClose }"
     :overlay="false"
     :transition="false"
     v-model:open="openAccountForm"
@@ -53,11 +53,12 @@
           <div class="space-y-6 flex-1">
             <!-- Account name -->
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white">Account Name</label>
               <u-form-field
+                label="Account Name"
                 name="accountName"
                 :ui="{
                   error: 'text-xs text-red-500 mt-1',
+                  label: 'text-white text-sm mb-1',
                 }"
               >
                 <u-input
@@ -69,7 +70,7 @@
                   placeholder="Enter account name"
                   trailing-icon="i-solar-pen-2-linear"
                   :ui="{
-                    base: 'w-full px-3 py-3 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-white placeholder:text-gray-400 transition-all duration-200',
+                    base: 'w-full !bg-gray-950 text-white px-3 py-3 ring-1 ring-gray-700 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-1 focus-visible:ring-1 focus-visible:ring-indigo-600',
                   }"
                   class="w-full"
                 />
@@ -78,11 +79,12 @@
 
             <!-- Account Starting Amount -->
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white">Current Amount</label>
               <u-form-field
                 name="amount"
+                label="Opening Balance"
                 :ui="{
                   error: 'text-xs text-red-500 mt-1',
+                  label: 'text-white text-sm mb-1',
                 }"
               >
                 <div class="relative">
@@ -95,7 +97,7 @@
                     trailing-icon="i-solar-pen-2-linear"
                     placeholder="0.00"
                     :ui="{
-                      base: 'w-full px-3 py-3 pr-12 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-white placeholder:text-gray-400 text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] transition-all duration-200',
+                      base: 'w-full px-3 py-3 pr-12 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus-visible:ring-1 focus-visible:ring-indigo-600 bg-gray-950 text-white placeholder:text-gray-400 text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] transition-all duration-200',
                     }"
                     class="w-full"
                   />
@@ -105,11 +107,12 @@
 
             <!-- Account Currency -->
             <div class="space-y-2">
-              <label class="text-sm font-medium text-white">Currency</label>
               <u-form-field
                 name="currency"
+                label="Select Currency"
                 :ui="{
                   error: 'text-xs text-red-500 mt-1',
+                  label: 'text-white text-sm mb-1',
                 }"
               >
                 <USelect
@@ -117,7 +120,10 @@
                   @input="fetchErrorMessage = null"
                   :items="currencyOptions"
                   :ui="{
-                    base: 'w-full px-3 py-3 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-800 text-white transition-all duration-200',
+                    base: 'w-full px-3 py-3 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-gray-950 text-white transition-all duration-200 focus-visible:ring-1 focus-visible:ring-indigo-600',
+                    viewport: 'bg-gray-800 text-white',
+                    item: 'text-sm text-white hover:bg-gray-200',
+                    value: 'text-sm text-white',
                   }"
                 />
               </u-form-field>
@@ -125,9 +131,9 @@
 
             <!-- Account Type -->
             <div v-if="selectedAccountType" class="space-y-2">
-              <label class="text-sm font-medium text-white">Account Type</label>
+              <span class="text-sm font-medium text-white mb-1 block">Account Type</span>
               <div
-                class="flex items-center justify-between px-3 py-3 ring-1 ring-gray-700 rounded-sm bg-gray-800"
+                class="flex items-center justify-between px-3 py-3 ring-1 ring-gray-700 rounded-sm bg-gray-950"
               >
                 <span class="text-white">{{ selectedAccountType.name }}</span>
                 <u-icon :name="selectedAccountType.icon || ''" class="size-6 text-indigo-400" />
@@ -159,6 +165,7 @@ import { toRef } from 'vue'
 import z from 'zod'
 import type { AccountType } from '@/types'
 import api from '@/services/api'
+import { useRouter } from 'vue-router'
 
 type AccountTypes = Omit<AccountType, 'createdBy'>
 
@@ -193,15 +200,25 @@ const currencyOptions = [
     label: 'USD - US Dollar',
     value: 'USD',
   },
-  {
-    label: 'NGN - Nigerian Naira',
-    value: 'NGN',
-  },
 ]
+const router = useRouter()
 
 const isSubmitting = ref<boolean>(false)
 const showSuccessModal = ref<boolean>(false)
 const fetchErrorMessage = ref<string | null>('')
+
+const previousRoute = router.options.history.state.back
+
+const handleClose = () => {
+  emit('closeAccountForm')
+  // Reset form state and errors when closing the form
+  state.value = {
+    accountName: '',
+    openingBalance: 10,
+    currency: 'USD',
+  }
+  fetchErrorMessage.value = null
+}
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const value = event.data
@@ -216,11 +233,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       accountTypeId: selectedAccountType.value.id,
     })
 
+    console.log(response)
+
     if (response.status === 201) {
       showSuccessModal.value = true
       setTimeout(() => {
         showSuccessModal.value = false
-        emit('accountCreated')
+        if (previousRoute === '/login' || previousRoute === '/verify') {
+          console.log('from login or verify')
+          router.replace('/dashboard')
+        } else {
+          console.log('not from login or verify')
+          emit('accountCreated')
+        }
       }, 2000)
     }
   } catch (error: unknown) {

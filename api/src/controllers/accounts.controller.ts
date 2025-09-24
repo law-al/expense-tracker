@@ -66,7 +66,7 @@ export const createAccount = async (
     },
   });
 
-  res.status(HttpStatus.OK).json({
+  res.status(HttpStatus.CREATED).json({
     success: true,
     message: 'Account created successfully',
   });

@@ -1,4 +1,44 @@
 <template>
+  <!-- Full Screen Loader -->
+  <LoadingModal :is-submitting="isSubmitting">
+    <template #statusText>
+      <p class="text-white text-sm font-medium tracking-wide">
+        {{ transactionType === 'income' ? 'Adding your income...' : 'Adding your expense...' }}
+      </p>
+    </template>
+  </LoadingModal>
+
+  <!-- Success Modal -->
+  <SuccessModal
+    :success-modal="showSuccessModal"
+    :show-button="false"
+    @close-success-modal="showSuccessModal = false"
+  >
+    <template #main>
+      <div
+        class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          ></path>
+        </svg>
+      </div>
+
+      <h3 class="text-lg font-semibold text-indigo-200 mb-2">Success!</h3>
+      <p class="text-gray-300 text-sm">
+        {{
+          transactionType === 'income'
+            ? 'Your income has been added successfully.'
+            : 'Your expense has been added successfully.'
+        }}
+      </p>
+    </template>
+  </SuccessModal>
+
   <UDrawer
     v-model:open="openExpenseView"
     direction="left"
@@ -22,51 +62,10 @@
     class="!w-[100%] !max-w-[100%] !h-[100%] !max-h-[100%] bg-gray-950 !border-0 !ring-0 text-white !p-0 !mt-0"
   >
     <template #body>
-      <!-- Full Screen Loader -->
-      <div
-        v-if="isSubmitting"
-        class="fixed inset-0 z-[9999] bg-gray-950/95 backdrop-blur-sm flex items-center justify-center"
-      >
-        <div class="flex flex-col items-center gap-4">
-          <div
-            class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-500 border-t-transparent"
-          ></div>
-          <p class="text-white text-lg font-light">
-            {{
-              transactionType === 'income'
-                ? 'Processing your income...'
-                : 'Processing your expense...'
-            }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Success Modal -->
-      <div
-        v-if="showSuccessModal"
-        class="fixed inset-0 z-[9999] bg-gray-950/95 backdrop-blur-sm flex items-center justify-center"
-      >
-        <div class="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-sm mx-4 text-center">
-          <div
-            class="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center"
-          >
-            <u-icon name="i-lucide-check" class="w-8 h-8 text-green-500" />
-          </div>
-          <h3 class="text-xl font-semibold text-white mb-2">Success!</h3>
-          <p class="text-gray-300 text-sm">
-            {{
-              transactionType === 'income'
-                ? 'Your income has been added successfully.'
-                : 'Your expense has been added successfully.'
-            }}
-          </p>
-        </div>
-      </div>
-
       <!-- Main Content -->
-      <div class="relative">
+      <div class="relative h-[100vh]">
         <div
-          class="w-full flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
+          class="w-full h-[10vh] flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
         >
           <h2 class="text-white font-semibold text-lg">
             {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
@@ -75,42 +74,44 @@
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="handleClose" />
         </div>
 
-        <div class="">
-          <p
-            v-show="displayError"
-            class="text-red-500 text-xs italic block w-full text-center mt-2"
-          >
-            {{ displayError }}
-          </p>
-          <div class="w-full border-b border-gray-700 p-4 mt-3">
-            <span
-              class="text-xs text-center w-full block mb-1"
-              :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+        <div class="h-[90vh] flex flex-col justify-around">
+          <div class="">
+            <!-- Error Message -->
+            <p
+              v-show="displayError"
+              class="text-red-500 text-xs italic block w-full text-center mt-2"
             >
-              {{ transactionType === 'income' ? 'Income' : 'Expenses' }}</span
-            >
-            <currency-input
-              v-model="amount"
-              :options="{
-                locale: 'en-US',
-                currency: 'USD',
-                valueRange: {},
-                hideCurrencySymbolOnFocus: true,
-                hideGroupingSeparatorOnFocus: true,
-                hideNegligibleDecimalDigitsOnFocus: true,
-                autoDecimalDigits: true,
-                useGrouping: false,
-                accountingSign: false,
-              }"
-              placeholder="$0.00"
-              :required="true"
-              class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none placeholder:text-gray-600 active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0"
-              :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
-            />
-          </div>
+              {{ displayError }}
+            </p>
+            <!-- Amount Input -->
+            <div class="w-full border-b border-gray-700 p-4 mt-3">
+              <span
+                class="text-xs text-center w-full block mb-1"
+                :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+              >
+                {{ transactionType === 'income' ? 'Income' : 'Expenses' }}</span
+              >
+              <currency-input
+                v-model="amount"
+                :options="{
+                  locale: 'en-US',
+                  currency: 'USD',
+                  valueRange: {},
+                  hideCurrencySymbolOnFocus: true,
+                  hideGroupingSeparatorOnFocus: true,
+                  hideNegligibleDecimalDigitsOnFocus: true,
+                  autoDecimalDigits: true,
+                  useGrouping: false,
+                  accountingSign: false,
+                }"
+                placeholder="$0.00"
+                :required="true"
+                class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none placeholder:text-gray-600 active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0"
+                :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+              />
+            </div>
 
-          <div class="w-full flex flex-col justify-between h-[70vh]">
-            <div class="">
+            <div class="w-full flex flex-col justify-between">
               <!-- Selected Account -->
               <div class="flex items-center justify-between w-full p-4 border-b border-gray-700">
                 <div class="">
@@ -145,7 +146,7 @@
 
               <!-- Select Sub Category -->
               <div
-                v-if="transactionType === 'expense'"
+                v-if="categoryStore.subCategories.length > 0 && transactionType === 'expense'"
                 class="flex items-center gap-2 overflow-x-auto p-4 border-b border-gray-700"
               >
                 <div
@@ -193,18 +194,18 @@
                 ></textarea>
               </div>
             </div>
+          </div>
 
-            <!-- Submit -->
-            <div class="mt-auto">
-              <u-button
-                @click="handleAddExpense"
-                :disabled="!amount || amount <= 0 || isSubmitting"
-                :loading="isLoading || isSubmitting"
-                size="lg"
-                class="w-full rounded-none bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/60 cursor-pointer font-light text-white justify-center"
-                label="Add Expense"
-              />
-            </div>
+          <!-- Submit -->
+          <div class="mt-auto px-2 py-2">
+            <u-button
+              @click="handleAddExpense"
+              :disabled="!amount || amount <= 0 || isSubmitting"
+              :loading="isLoading || isSubmitting"
+              size="xl"
+              class="w-full rounded-none bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/60 cursor-pointer font-light text-white justify-center"
+              label="Add Expense"
+            />
           </div>
         </div>
       </div>
@@ -222,9 +223,10 @@ import { computed, ref, watch } from 'vue'
 import { AxiosError } from 'axios'
 import api from '@/services/api'
 import { useRouter } from 'vue-router'
-import { useDashboardData } from '@/composables/fetchDashBoardData'
+import { useDashboardDataV2 } from '@/composables/fetchDashBoardData'
 import { useTransactionStore } from '@/stores/transaction.store'
 import { colorToHex } from '@/utils/colorUtils'
+import SuccessModal from '../common/SuccessModal.vue'
 
 // props from parent component (SetCategory.vue)
 const prop = defineProps<{
@@ -243,7 +245,7 @@ const categoryStore = useCategoryStore()
 const { selectedCategory, selectedSubCategory } = storeToRefs(categoryStore)
 const transactionStore = useTransactionStore()
 const router = useRouter()
-const { refreshDashboard } = useDashboardData()
+const { refreshDashBoard } = useDashboardDataV2()
 
 const amount = ref<number | null>(0)
 const description = ref<string>('')
@@ -266,6 +268,7 @@ const handleClose = () => {
 
   amount.value = 0
   description.value = ''
+  categoryStore.setCategory(null)
   categoryStore.setSubCategory(null)
   emit('closeExpenseView')
 }
@@ -309,7 +312,7 @@ const handleAddExpense = async () => {
       setTimeout(async () => {
         showSuccessModal.value = false
         emit('finishTransactionAndDismiss')
-        await refreshDashboard()
+        await refreshDashBoard()
 
         router.push('/dashboard')
       }, 3000)

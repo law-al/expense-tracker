@@ -7,9 +7,10 @@
     <div class="flex flex-col items-center gap-3 rounded-2xl bg-white/10 px-6 py-5 shadow-2xl">
       <!-- Modern Loader -->
       <span class="loader"></span>
-
-      <!-- Status Text -->
-      <p class="text-white text-sm font-medium tracking-wide">Submitting your data...</p>
+      <slot name="statusText">
+        <!-- Status Text -->
+        <p class="text-white text-sm font-medium tracking-wide">Submitting your data...</p>
+      </slot>
     </div>
   </div>
 </template>

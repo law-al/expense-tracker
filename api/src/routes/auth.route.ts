@@ -15,7 +15,7 @@ const authRoute = Router();
 authRoute.post('/register', asyncHandler(register));
 authRoute.post('/login', asyncHandler(login));
 authRoute.post('/verify', asyncHandler(verifyEmail));
-authRoute.post('/resend-otp', asyncHandler(resendOtp));
+authRoute.get('/resend-otp', asyncHandler(resendOtp));
 authRoute.post('/forgot-password', asyncHandler(forgotPassword));
 authRoute.patch('/reset-password/:token', asyncHandler(resetPassword));
 authRoute.get('/refresh-token', asyncHandler(getAccessToken));
