@@ -34,3 +34,5 @@ logger.info(`🚀 My app is running! Process ID: ${process.pid}`);
 app.listen(PORT, () => {
   logger.info('Server is running on port ' + PORT);
 });
+
+export default app;
