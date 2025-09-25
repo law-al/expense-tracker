@@ -3,10 +3,10 @@ import type { Express, Request, Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { PORT } from './src/secret.js';
-import rootRoute from './src/routes/index.js';
-import logger from './src/utils/logger.js';
-import { globalErrorHandler } from './src/middleware/global-error.js';
+import { PORT } from './secret.js';
+import rootRoute from './routes/index.js';
+import logger from './utils/logger.js';
+import { globalErrorHandler } from './middleware/global-error.js';
 
 const app: Express = express();
 
