@@ -3,7 +3,7 @@ import type { Express } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { PORT } from './secret.js';
+import { NODE_ENV, PORT } from './secret.js';
 import rootRoute from './routes/index.js';
 import logger from './utils/logger.js';
 import { globalErrorHandler } from './middleware/global-error.js';
@@ -31,8 +31,14 @@ app.use(globalErrorHandler);
 
 logger.info(`🚀 My app is running! Process ID: ${process.pid}`);
 
-app.listen(PORT, () => {
-  logger.info('Server is running on port ' + PORT);
+app.get('/', (req, res) => {
+  res.send('Hello from Express on Vercel!');
 });
+
+if (NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    logger.info('Server is running on port ' + PORT);
+  });
+}
 
 export default app;
