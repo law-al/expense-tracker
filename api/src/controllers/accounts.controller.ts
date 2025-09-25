@@ -39,7 +39,7 @@ export const createAccount = async (
     ) {
       return next(new NotFoundError('Account type not found'));
     }
-  } catch (error) {
+  } catch {
     throw new NotFoundError('Account type not found');
   }
 
@@ -99,7 +99,7 @@ export const updateAccount = async (
     account = await prismaClient.account.findFirstOrThrow({
       where: { id: +id, userId: +req.user?.id },
     });
-  } catch (error) {
+  } catch {
     throw new NotFoundError('Account not found');
   }
 
@@ -120,7 +120,7 @@ export const updateAccount = async (
       ) {
         return next(new NotFoundError('Account type not found'));
       }
-    } catch (error) {
+    } catch {
       throw new NotFoundError('Account type not found');
     }
   }
@@ -155,11 +155,7 @@ export const updateAccount = async (
 
 //SECTION: Get all accounts for the logged in user
 
-export const getAccounts = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAccounts = async (req: Request, res: Response) => {
   if (!req.user) return;
   const accounts: AccountWithDetails[] = await prismaClient.account.findMany({
     where: {
@@ -240,11 +236,7 @@ export const createAccountType = async (
 
 // SECTION: get all default account types
 
-export const getAccountTypes = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAccountTypes = async (req: Request, res: Response) => {
   const accountTypes = await prismaClient.accountType.findMany({
     where: {
       createdBy: null,

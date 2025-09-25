@@ -143,10 +143,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     errorFlag.value = null
     isLoading.value = true
     const response = await api.post('/auth/register', event.data)
-    console.log(response)
 
     if (response.status === 201) {
-      console.log(response.data)
       router.push({
         path: '/verify',
         query: { token: response.data.data.accessToken },

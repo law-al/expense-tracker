@@ -113,8 +113,7 @@ const finishTransactionAndDismiss = () => {
 watch(
   () => props.openCategoryView,
   (newVal) => {
-    openCategoryView.value = newVal
-    console.log('Category Drawer Open:', openCategoryView.value)
+    openCategoryView.value = newVal('Category Drawer Open:', openCategoryView.value)
   },
 )
 </script>

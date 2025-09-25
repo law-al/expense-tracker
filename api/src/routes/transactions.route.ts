@@ -8,12 +8,19 @@ import {
   getTransactionHistory,
   getUserExpensesAggregrate,
 } from '../controllers/transactions.controller.js';
+import { rateLimit } from '../middleware/limiter.js';
 
 const transactionsRoute: Router = Router();
 
-transactionsRoute.post('/create', protect, asyncHandler(createTransaction));
+transactionsRoute.post(
+  '/create',
+  rateLimit(60 * 1000, 10),
+  protect,
+  asyncHandler(createTransaction)
+);
 transactionsRoute.post(
   '/transfer',
+  rateLimit(60 * 1000, 5),
   protect,
   asyncHandler(createTransferTransaction)
 );

@@ -26,6 +26,12 @@ export const useAccountStore = defineStore('accounts', () => {
     selectedAccount.value = account
   }
 
+  const logout = () => {
+    accounts.value = []
+    accountOverview.value = { accounts: [], totalBalance: 0 }
+    selectedAccount.value = null
+  }
+
   const fetchUsersAccount = async () => {
     try {
       const response = await api.get('/accounts/fetch')
@@ -34,7 +40,7 @@ export const useAccountStore = defineStore('accounts', () => {
         accountOverview.value = response.data.data
       }
     } catch (error) {
-      console.log('Error fetching account:', error)
+      throw error
     }
   }
 
@@ -46,5 +52,6 @@ export const useAccountStore = defineStore('accounts', () => {
     setAccount,
     setAccounts,
     fetchUsersAccount,
+    logout,
   }
 })

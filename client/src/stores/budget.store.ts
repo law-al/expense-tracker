@@ -61,6 +61,11 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  const logout = () => {
+    budgets.value = null
+    budgetByCategory.value = []
+  }
+
   return {
     budgets,
     budgetByCategory,
@@ -70,5 +75,6 @@ export const useBudgetStore = defineStore('budget', () => {
     setBudgetsByCategory,
     fetchBudgets,
     fetchBudgetsByCategory,
+    logout,
   }
 })

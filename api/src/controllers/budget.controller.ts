@@ -303,7 +303,7 @@ export const getTotalBudgetsAndExpenseByCategory = async (
   );
 
   // STEP: Merge budgets and expenses by categoryId
-  let mergedData: {
+  const mergedData: {
     categoryId: number;
     category: {
       name: string | undefined;

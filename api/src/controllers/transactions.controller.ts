@@ -59,7 +59,7 @@ export const createTransaction = async (
         id: +req.body.transactionTypeId,
       },
     });
-  } catch (error) {
+  } catch {
     throw new NotFoundError('Transaction type not found');
   }
 
@@ -81,7 +81,7 @@ export const createTransaction = async (
         return next(new BadRequestError('Insufficient balance'));
       }
     }
-  } catch (error) {
+  } catch  {
     throw new NotFoundError('Account not found');
   }
 
@@ -93,7 +93,7 @@ export const createTransaction = async (
         id: +req.body.categoryId,
       },
     });
-  } catch (error) {
+  } catch  {
     throw new NotFoundError('Category not found');
   }
 
@@ -109,32 +109,38 @@ export const createTransaction = async (
   // STEP: Work on adding subcategory
 
   //STEP: Create transaction and update account balance in a single transaction
-  await prismaClient.$transaction(async (tx) => {
-    if (!req.user) return;
-    await tx.transaction.create({
-      data: {
-        userId: +req.user?.id,
-        accountId: account.id,
-        categoryId: category.id,
-        amount: +req.body.amount,
-        transactionTypeId: transactionType.id,
-        description: req.body.description,
-        date: new Date(),
-      },
-    });
-
-    await tx.account.update({
-      where: {
-        id: account.id,
-        userId: +req.user?.id,
-      },
-      data: {
-        currentBalance: {
-          increment: newBalance,
+  await prismaClient.$transaction(
+    async (tx) => {
+      if (!req.user) return;
+      await tx.transaction.create({
+        data: {
+          userId: +req.user?.id,
+          accountId: account.id,
+          categoryId: category.id,
+          amount: +req.body.amount,
+          transactionTypeId: transactionType.id,
+          description: req.body.description,
+          date: new Date(),
         },
-      },
-    });
-  });
+      });
+
+      await tx.account.update({
+        where: {
+          id: account.id,
+          userId: +req.user?.id,
+        },
+        data: {
+          currentBalance: {
+            increment: newBalance,
+          },
+        },
+      });
+    },
+    {
+      maxWait: 5000, // default: 2000
+      timeout: 10000, // default: 5000
+    }
+  );
 
   res.status(HttpStatus.CREATED).json({
     success: true,
@@ -189,7 +195,7 @@ export const createTransferTransaction = async (
     if (transferFromAccount.id === transferToAccount.id) {
       return next(new BadRequestError('Cannot transfer to the same account'));
     }
-  } catch (error) {
+  } catch {
     throw new NotFoundError('Account not found');
   }
 
@@ -202,59 +208,65 @@ export const createTransferTransaction = async (
   }
 
   //STEP: Create transfer transaction and update both account balances in a single transaction
-  await prismaClient.$transaction(async (tx) => {
-    if (!req.user) {
-      return next(new UnAuthorizedError('User not authenticated'));
+  await prismaClient.$transaction(
+    async (tx) => {
+      if (!req.user) {
+        return next(new UnAuthorizedError('User not authenticated'));
+      }
+      const transactionData = [
+        {
+          userId: req.user.id,
+          accountId: transferFromAccount.id,
+          amount: +req.body.amount,
+          transactionTypeId: 3,
+          categoryId: 48,
+          description: req.body.description,
+          date: req.body.date ? new Date(req.body.date) : new Date(),
+        },
+        {
+          userId: req.user.id,
+          accountId: transferToAccount.id,
+          amount: +req.body.amount,
+          transactionTypeId: 4,
+          categoryId: 49,
+          description: req.body.description,
+          date: req.body.date ? new Date(req.body.date) : new Date(),
+        },
+      ];
+
+      await tx.transaction.createMany({
+        data: transactionData,
+      });
+
+      await tx.account.update({
+        where: {
+          id: transferFromAccount.id,
+          userId: req.user.id,
+        },
+        data: {
+          currentBalance: {
+            decrement: Number(req.body.amount),
+          },
+        },
+      });
+
+      await tx.account.update({
+        where: {
+          id: transferToAccount.id,
+          userId: req.user.id,
+        },
+        data: {
+          currentBalance: {
+            increment: Number(req.body.amount),
+          },
+        },
+      });
+    },
+    {
+      maxWait: 5000, // default: 2000
+      timeout: 10000, // default: 5000
     }
-    const transactionData = [
-      {
-        userId: req.user.id,
-        accountId: transferFromAccount.id,
-        amount: +req.body.amount,
-        transactionTypeId: 3,
-        categoryId: 48,
-        description: req.body.description,
-        date: req.body.date ? new Date(req.body.date) : new Date(),
-      },
-      {
-        userId: req.user.id,
-        accountId: transferToAccount.id,
-        amount: +req.body.amount,
-        transactionTypeId: 4,
-        categoryId: 49,
-        description: req.body.description,
-        date: req.body.date ? new Date(req.body.date) : new Date(),
-      },
-    ];
-
-    await tx.transaction.createMany({
-      data: transactionData,
-    });
-
-    await tx.account.update({
-      where: {
-        id: transferFromAccount.id,
-        userId: req.user.id,
-      },
-      data: {
-        currentBalance: {
-          decrement: Number(req.body.amount),
-        },
-      },
-    });
-
-    await tx.account.update({
-      where: {
-        id: transferToAccount.id,
-        userId: req.user.id,
-      },
-      data: {
-        currentBalance: {
-          increment: Number(req.body.amount),
-        },
-      },
-    });
-  });
+  );
 
   res.status(HttpStatus.OK).json({
     success: true,
@@ -267,7 +279,7 @@ export const createTransferTransaction = async (
 export const getUserExpensesAggregrate = async (
   req: Request,
   res: Response,
-  next: NextFunction
+
 ) => {
   if (!req.user) return;
 
@@ -290,7 +302,7 @@ export const getUserExpensesAggregrate = async (
 
   //REVIEW:
 
-  let aggregrateData: AggregrateData[] = [];
+  const aggregrateData: AggregrateData[] = [];
   if (aggregateExpenses.length > 0) {
     //STEP: find the category names for each categoryId
     for (const expense of aggregateExpenses) {
@@ -325,7 +337,7 @@ export const getUserExpensesAggregrate = async (
 export const getRecentTransactions = async (
   req: Request,
   res: Response,
-  next: NextFunction
+
 ) => {
   if (!req.user) return;
 
@@ -367,7 +379,6 @@ export const getRecentTransactions = async (
 export const getTransactionHistory = async (
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   if (!req.user) return;
   const period = req.query?.period || 2025;
@@ -376,8 +387,6 @@ export const getTransactionHistory = async (
 
   const startDate = startOfYear(+year);
   const endDate = endOfYear(+year);
-
-  console.log(startDate, endDate);
 
   const transaction = await prismaClient.transaction.findMany({
     where: {

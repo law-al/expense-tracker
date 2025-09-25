@@ -195,7 +195,6 @@ watch([isSubmitting, showSuccessModal], ([newValForSubmit, newValForSuccess]) =>
 })
 
 onBeforeRouteLeave(async () => {
-  console.log('leaving route, refreshing dashboard data')
   await refreshDashBoard()
 })
 </script>

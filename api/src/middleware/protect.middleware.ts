@@ -2,12 +2,11 @@ import type { NextFunction, Request, Response } from 'express';
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { UnAuthorizedError } from '../exceptions/unauthorized.js';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
-import { JWT_SECRET } from '../../secret.js';
+import { JWT_SECRET } from '../secret.js';
 import type { User } from '@prisma/client';
 import { prismaClient } from '../utils/prisma-client.js';
 import { NotFoundError } from '../exceptions/not-found.js';
 import logger from '../utils/logger.js';
-import { th } from 'zod/locales';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
@@ -45,7 +44,7 @@ export const protect = async (
           id: +decoded.id,
         },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundError('User not found, Please login again');
     }
 

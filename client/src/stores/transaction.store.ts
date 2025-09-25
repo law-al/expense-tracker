@@ -27,7 +27,6 @@ export const useTransactionStore = defineStore('transaction', () => {
     try {
       const response = await api.get('/transactions/recent')
       if (response.status === 200) {
-        console.log('Recent transactions fetched successfully:', response.data)
         recentTransactions.value = response.data.data
       }
     } catch (error) {
@@ -59,7 +58,6 @@ export const useTransactionStore = defineStore('transaction', () => {
         signal,
       })
       if (response.status === 200) {
-        console.log('Transaction history fetched successfully:', response.data)
         transactionHistory.value = response.data.data
       }
     } catch (error) {
@@ -68,6 +66,13 @@ export const useTransactionStore = defineStore('transaction', () => {
       }
       throw error
     }
+  }
+
+  const logout = () => {
+    selectedTransactionType.value = null
+    recentTransactions.value = []
+    expenseAggregrate.value = []
+    transactionHistory.value = []
   }
 
   return {
@@ -80,5 +85,6 @@ export const useTransactionStore = defineStore('transaction', () => {
     fetchTransactionHistory,
     fetchRecentTransactions,
     fetchExpencesAggregrate,
+    logout,
   }
 })

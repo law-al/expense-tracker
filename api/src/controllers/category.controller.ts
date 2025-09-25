@@ -7,11 +7,7 @@ import { HttpStatus } from '../utils/http-status.js';
 
 //SECTION: Create sub-category
 
-export const createSubCategory = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const createSubCategory = async (req: Request, res: Response) => {
   if (!req.user) return;
   //STEP: Validate request body
   try {
@@ -33,7 +29,7 @@ export const createSubCategory = async (
         id: +req.body.parentId,
       },
     });
-  } catch (error) {
+  } catch  {
     throw new NotFoundError('Parent category not found');
   }
 
@@ -59,7 +55,6 @@ export const createSubCategory = async (
 export const getExpenseCategories = async (
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   if (!req.user) return;
 
@@ -89,7 +84,6 @@ export const getExpenseCategories = async (
 export const getIncomeCategories = async (
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   if (!req.user) return;
 
@@ -119,7 +113,6 @@ export const getIncomeCategories = async (
 export const fetchSubCategoriesById = async (
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   if (!req.user) return;
   const { id } = req.params;

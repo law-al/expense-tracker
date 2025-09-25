@@ -333,7 +333,6 @@ watch(
   () => prop.openExpenseView,
   (newVal) => {
     openExpenseView.value = newVal
-    console.log('Expense Drawer Open:', openExpenseView.value)
   },
 )
 </script>

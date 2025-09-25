@@ -233,17 +233,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       accountTypeId: selectedAccountType.value.id,
     })
 
-    console.log(response)
-
     if (response.status === 201) {
       showSuccessModal.value = true
       setTimeout(() => {
         showSuccessModal.value = false
         if (previousRoute === '/login' || previousRoute === '/verify') {
-          console.log('from login or verify')
-          router.replace('/dashboard')
+          window.location.href = '/dashboard'
         } else {
-          console.log('not from login or verify')
           emit('accountCreated')
         }
       }, 2000)

@@ -133,7 +133,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       userStore.isAuthenticated = true
 
       await refreshDashBoard()
-      console.log(isLoading.value)
       if (accountStore.accounts.length === 0) {
         router.push('/create-account')
       } else {

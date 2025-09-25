@@ -92,7 +92,7 @@ const finishTransactionAndDismiss = () => {
 watch(
   () => openTransactionModal.value,
   (newVal) => {
-    console.log('Add Transaction Modal Visible:', newVal)
+    ;('Add Transaction Modal Visible:', newVal)
   },
 )
 </script>

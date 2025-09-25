@@ -1,12 +1,35 @@
 import type { NextFunction, Request, Response } from 'express';
 import { ApiError, ErrorCodes } from '../exceptions/index.js';
-import logger from '../utils/logger.js';
 import { ZodError } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
 import { ValidationError } from '../exceptions/validation.js';
-import { NODE_ENV } from '../../secret.js';
+import { NODE_ENV } from '../secret.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
+// func for giving custom message for duplicate field value
+const duplicateFieldMessage = (field: string | undefined): string => {
+  if (!field) return 'Duplicate field value entered';
+  const formattedField: Record<string, string> = {
+    email: 'Email already exists',
+    username: 'Username already exists',
+  };
+  return formattedField[field] || 'Duplicate field value entered';
+};
+
+// Extract duplicate field value from Prisma error message
+const extractDuplicateFieldValue = (
+  error: PrismaClientKnownRequestError
+): string => {
+  if (error && error.meta && error.meta.target) {
+    const errMessage = error.meta.target as string;
+    const errField = errMessage.split('_')[1];
+    return duplicateFieldMessage(errField);
+  } else {
+    return 'Duplicate field value entered';
+  }
+};
+
+// Handle ZodError
 const handleZodError = (error: ZodError): ApiError => {
   const validationError = fromError(error, {
     messageBuilder: createMessageBuilder({
@@ -24,15 +47,15 @@ const handleZodError = (error: ZodError): ApiError => {
   return err;
 };
 
+// Handle PrismaClientKnownRequestError
 const handlePrismaClientKnownRequestError = (
   error: PrismaClientKnownRequestError
 ): ApiError => {
-  console.log(error.code);
-
   let err: ApiError;
   if (error.code === 'P2002') {
+    extractDuplicateFieldValue(error);
     err = new ValidationError(
-      'Duplicate field value entered',
+      extractDuplicateFieldValue(error),
       ErrorCodes.VALIDATION_ERROR,
       error
     );
@@ -43,13 +66,36 @@ const handlePrismaClientKnownRequestError = (
   return err;
 };
 
-const devError = (err: ApiError, res: Response) => {
-  res.status(err.statusCode).json({
-    success: false,
-    message: err.message,
-    error: err || null,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
+const devErrorV2 = (err: Error, res: Response) => {
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      error: err || null,
+      stack: err.stack,
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong',
+      error: err || null,
+      stack: err.stack,
+    });
+  }
+};
+
+const prodError = (err: Error, res: Response) => {
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong',
+    });
+  }
 };
 
 export const globalErrorHandler = (
@@ -58,53 +104,15 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.log(error);
-  let err: ApiError | undefined = undefined;
+  let err: Error = error;
   if (error instanceof ZodError) err = handleZodError(error);
+  // prettier-ignore
   if (error.name === 'PrismaClientKnownRequestError')
-    err = handlePrismaClientKnownRequestError(
-      error as PrismaClientKnownRequestError
-    );
-  if (error instanceof ApiError) err = error;
+    err = handlePrismaClientKnownRequestError(error as PrismaClientKnownRequestError );
 
-  if (process.env.NODE_ENV === 'development') {
-    if (err) {
-      devError(err, res);
-    } else {
-      res.status(500).json({
-        success: false,
-        message: 'Something went wrong',
-        errorCode: 1006,
-        error: error || null,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      });
-    }
-  } else if (process.env.NODE_ENV === 'production') {
-    logger.error('Error: ', err);
+  if (NODE_ENV === 'development') {
+    devErrorV2(err, res);
+  } else if (NODE_ENV === 'production') {
+    prodError(err, res);
   }
 };
-
-/*
-export const globalErrorHandler = (
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  // const statusCode = err.statusCode || 500;
-  // const message = err.message || 'Internal Server Error';
-  // const errorCode = err.errorCode || 1006;
-  // const error = err.error || null;
-
-  console.log(error);
-  let err: ApiError | undefined = undefined;
-  if (error instanceof ZodError) err = handleZodError(error);
-  if (error instanceof ApiError) err = error;
-
-  if (process.env.NODE_ENV === 'development' && err) {
-    devError(err, res);
-  } else if (process.env.NODE_ENV === 'production') {
-    logger.error('Error: ', err);
-  }
-};
-*/

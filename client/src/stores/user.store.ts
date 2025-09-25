@@ -8,12 +8,17 @@ export const useUserStore = defineStore('user', () => {
   // STEP: Get user from localStorage if available
   const initializeUser = () => {
     const token = localStorage.getItem('token')
-    if (token !== 'undefined') {
+    if (token !== 'undefined' && token !== null) {
       isAuthenticated.value = true
     } else {
       isAuthenticated.value = false
     }
   }
 
-  return { isAuthenticated, initializeUser }
+  const logout = () => {
+    isAuthenticated.value = false
+    localStorage.removeItem('token')
+  }
+
+  return { isAuthenticated, initializeUser, logout }
 })

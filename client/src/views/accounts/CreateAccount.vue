@@ -55,7 +55,6 @@ const setOpen = (type: AccountTypes): void => {
 }
 
 const handleAccountCreated = () => {
-  console.log('Account created successfully')
   router.replace('/dashboard')
 }
 
@@ -69,7 +68,11 @@ onMounted(async () => {
     }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>
-    console.log(axiosError.response?.data)
+    if (axiosError.response) {
+      console.error('Error fetching account types:', axiosError.response.data.message)
+    } else {
+      console.error('Error fetching account types:', axiosError.message)
+    }
   } finally {
     isLoading.value = false
   }

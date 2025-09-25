@@ -11,20 +11,17 @@ import type { JwtPayload } from 'jsonwebtoken';
 import type { User } from '@prisma/client';
 import { NotFoundError } from '../exceptions/not-found.js';
 import { BadRequestError } from '../exceptions/bad-request.js';
-import { JWT_SECRET, NODE_ENV } from '../../secret.js';
+import { JWT_SECRET, NODE_ENV } from '../secret.js';
 import crypto from 'crypto';
 import { sendEmail } from '../utils/send-emal.js';
-import { da } from 'zod/locales';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
 }
 
 const generateOtp = () => {
-  let otp;
-  let otpHash;
-  otp = crypto.randomInt(100000, 999999).toString();
-  otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
   return { otp, otpHash };
 };
 
@@ -59,32 +56,81 @@ export const register = async (req: Request, res: Response) => {
     const { otp, otpHash } = generateOtp();
     let token: string | null = null;
 
-    await prismaClient.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          username: req.body.username,
-          email: req.body.email,
-          otp: otpHash,
-          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
-          isVerified: false,
-          password: hashSync(req.body.password, 12),
-        },
-      });
-
-      token = jwt.sign({ id: user.id }, JWT_SECRET!);
-
-      if (user) {
-        try {
-          await sendEmail(
-            req.body.email,
-            'Verify your email',
-            `Your OTP is ${otp}. It will expire in 10 minutes.`
-          );
-        } catch (error) {
-          throw error;
-        }
-      }
+    const user = await prismaClient.user.findFirst({
+      where: {
+        OR: [{ username: req.body.username }, { email: req.body.email }],
+      },
     });
+
+    if (user && !user.isVerified) {
+      try {
+        await sendEmail(
+          req.body.email,
+          'Verify your email',
+          `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #333;">Email Verification</h2>
+            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+            <p>This OTP will expire in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <br />
+            <p>Best regards,<br/>Expense Tracker Team</p>
+          </div>
+          `
+        );
+      } catch (error) {
+        throw error;
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Please verify your email to complete registration',
+      });
+    }
+
+    await prismaClient.$transaction(
+      async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            username: req.body.username,
+            email: req.body.email,
+            otp: otpHash,
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+            isVerified: false,
+            password: hashSync(req.body.password, 12),
+          },
+        });
+
+        token = jwt.sign({ id: user.id }, JWT_SECRET!);
+
+        if (user) {
+          try {
+            await sendEmail(
+              req.body.email,
+              'Verify your email',
+              `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #333;">Email Verification</h2>
+            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+            <p>This OTP will expire in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <br />
+            <p>Best regards,<br/>Expense Tracker Team</p>
+          </div>
+          `
+            );
+          } catch (error) {
+            throw error;
+          }
+        }
+      },
+      {
+        maxWait: 5000, // default: 2000
+        timeout: 10000, // default: 5000
+      }
+    );
 
     res.status(201).json({
       success: true,
@@ -94,7 +140,6 @@ export const register = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };
@@ -113,8 +158,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
   if (!token || typeof token !== 'string')
     throw new BadRequestError('Invalid or missing token');
 
-  let decoded: IJwtPayload;
-  decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
+  const decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
 
   if (!decoded.id) throw new BadRequestError('Invalid token');
 
@@ -157,8 +201,7 @@ export const resendOtp = async (req: Request, res: Response) => {
   if (!token || typeof token !== 'string')
     throw new BadRequestError('Invalid or missing token');
 
-  let decoded: IJwtPayload;
-  decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
+  const decoded = jwt.verify(token, JWT_SECRET!) as IJwtPayload;
 
   if (!decoded.id) throw new BadRequestError('Invalid token');
 
@@ -174,22 +217,41 @@ export const resendOtp = async (req: Request, res: Response) => {
 
   const { otp, otpHash } = generateOtp();
 
-  await prismaClient.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: user.id },
-      data: { otp: otpHash, otpExpiry: new Date(Date.now() + 10 * 60 * 1000) },
-    });
+  await prismaClient.$transaction(
+    async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          otp: otpHash,
+          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
 
-    try {
-      await sendEmail(
-        user.email,
-        'Verify your email',
-        `Your OTP is ${otp}. It will expire in 10 minutes.`
-      );
-    } catch (error) {
-      throw new BadRequestError('Email not sent, Please try again later');
+      try {
+        await sendEmail(
+          user.email,
+          'Verify your email',
+          `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #333;">Email Verification</h2>
+            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+            <p>This OTP will expire in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <br />
+            <p>Best regards,<br/>Expense Tracker Team</p>
+          </div>
+          `
+        );
+      } catch {
+        throw new BadRequestError('Email not sent, Please try again later');
+      }
+    },
+    {
+      maxWait: 5000, // default: 2000
+      timeout: 10000, // default: 5000
     }
-  });
+  );
 
   res.status(200).json({
     success: true,
@@ -256,27 +318,43 @@ export const forgotPassword = async (req: Request, res: Response) => {
     .update(resetToken)
     .digest('hex');
 
-  await prismaClient.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: user.id },
-      data: {
-        resetToken: resetTokenHash,
-        resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
-      },
-    });
-  });
+  await prismaClient.$transaction(
+    async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          resetToken: resetTokenHash,
+          resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
 
-  const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+      const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
 
-  try {
-    await sendEmail(
-      user.email,
-      'Reset your password',
-      `Click the link to reset your password: ${resetUrl}. This link will expire in 10 minutes.`
-    );
-  } catch (error) {
-    throw error;
-  }
+      try {
+        await sendEmail(
+          user.email,
+          'Reset your password',
+          `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>We received a request to reset your password. Click the link below to set a new password:</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 10px 15px; background-color: #007BFF; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>This link will expire in 10 minutes.</p>
+        <p>If you did not request a password reset, please ignore this email.</p>
+        <br />
+        <p>Best regards,<br/>Expense Tracker Team</p>
+      </div>
+     `
+        );
+      } catch (error) {
+        throw error;
+      }
+    },
+    {
+      maxWait: 5000, // default: 2000
+      timeout: 10000, // default: 5000
+    }
+  );
 
   res.status(200).json({
     success: true,

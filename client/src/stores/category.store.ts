@@ -71,6 +71,15 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  const logout = () => {
+    categories.value = []
+    subCategories.value = []
+    expenseCategories.value = []
+    incomeCategories.value = []
+    selectedCategory.value = null
+    selectedSubCategory.value = null
+  }
+
   return {
     categories,
     subCategories,
@@ -93,5 +102,7 @@ export const useCategoryStore = defineStore('category', () => {
     fetchExpenseCategories,
     fetchIncomeCategories,
     fetchSubCategoriesById,
+
+    logout,
   }
 })

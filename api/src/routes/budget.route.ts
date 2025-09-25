@@ -7,10 +7,16 @@ import {
   getTotalBudgetsAndExpenseByCategory,
   getTotalBudgetsAndExpenses,
 } from '../controllers/budget.controller.js';
+import { rateLimit } from '../middleware/limiter.js';
 
 const budgetRoute: Router = Router();
 
-budgetRoute.post('/create', protect, asyncHandler(createBudget));
+budgetRoute.post(
+  '/create',
+  rateLimit(60 * 1000, 5),
+  protect,
+  asyncHandler(createBudget)
+);
 budgetRoute.get('/fetch', protect, asyncHandler(getBudgets));
 budgetRoute.get(
   '/total-budget',
