@@ -1,16 +1,16 @@
 import type { NextFunction, Request, Response } from 'express';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type AsyncFunction = (
   req: Request,
   res: Response,
   next: NextFunction
-) => Promise<unknown>;
+) => Promise<any>;
 
 export const asyncHandler = (fn: AsyncFunction) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       await fn(req, res, next);
-    } catch (error: unknown) {
+    } catch (error: any) {
       next(error);
     }
   };

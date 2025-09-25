@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { CreateCategorySchema } from '../schema/category.schema.js';
 import type { Category } from '@prisma/client';
 import { prismaClient } from '../utils/prisma-client.js';
@@ -10,11 +10,8 @@ import { HttpStatus } from '../utils/http-status.js';
 export const createSubCategory = async (req: Request, res: Response) => {
   if (!req.user) return;
   //STEP: Validate request body
-  try {
-    CreateCategorySchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+
+  CreateCategorySchema.parse(req.body);
 
   //STEP: Check if parent category is provided
   if (!req.body.parentId)
@@ -29,7 +26,7 @@ export const createSubCategory = async (req: Request, res: Response) => {
         id: +req.body.parentId,
       },
     });
-  } catch  {
+  } catch {
     throw new NotFoundError('Parent category not found');
   }
 
@@ -52,10 +49,7 @@ export const createSubCategory = async (req: Request, res: Response) => {
 };
 
 // SECTION: get expense categories including sub-categories and curent user subcategories
-export const getExpenseCategories = async (
-  req: Request,
-  res: Response,
-) => {
+export const getExpenseCategories = async (req: Request, res: Response) => {
   if (!req.user) return;
 
   // STEP: Fetch all categories including sub-categories and current user sub-categories
@@ -81,10 +75,7 @@ export const getExpenseCategories = async (
 };
 
 // SECTION: get income categories including sub-categories and curent user subcategories
-export const getIncomeCategories = async (
-  req: Request,
-  res: Response,
-) => {
+export const getIncomeCategories = async (req: Request, res: Response) => {
   if (!req.user) return;
 
   // STEP: Fetch all categories including sub-categories and current user sub-categories
@@ -110,10 +101,7 @@ export const getIncomeCategories = async (
 };
 
 //SECTION: Get sub-categories by category id
-export const fetchSubCategoriesById = async (
-  req: Request,
-  res: Response,
-) => {
+export const fetchSubCategoriesById = async (req: Request, res: Response) => {
   if (!req.user) return;
   const { id } = req.params;
 

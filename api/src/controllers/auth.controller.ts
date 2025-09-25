@@ -46,24 +46,56 @@ const getTokens = (id: number | string, res: Response) => {
 // SECTION: Register user
 
 export const register = async (req: Request, res: Response) => {
-  try {
-    try {
-      RegisterSchema.parse(req.body);
-    } catch (error) {
-      throw error;
-    }
+  RegisterSchema.parse(req.body);
 
-    const { otp, otpHash } = generateOtp();
-    let token: string | null = null;
+  const { otp, otpHash } = generateOtp();
+  let token: string | null = null;
 
-    const user = await prismaClient.user.findFirst({
-      where: {
-        OR: [{ username: req.body.username }, { email: req.body.email }],
-      },
+  const user = await prismaClient.user.findFirst({
+    where: {
+      OR: [{ username: req.body.username }, { email: req.body.email }],
+    },
+  });
+
+  if (user && !user.isVerified) {
+    await sendEmail(
+      req.body.email,
+      'Verify your email',
+      `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #333;">Email Verification</h2>
+            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+            <p>This OTP will expire in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <br />
+            <p>Best regards,<br/>Expense Tracker Team</p>
+          </div>
+          `
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Please verify your email to complete registration',
     });
+  }
 
-    if (user && !user.isVerified) {
-      try {
+  await prismaClient.$transaction(
+    async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          username: req.body.username,
+          email: req.body.email,
+          otp: otpHash,
+          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+          isVerified: false,
+          password: hashSync(req.body.password, 12),
+        },
+      });
+
+      token = jwt.sign({ id: user.id }, JWT_SECRET!);
+
+      if (user) {
         await sendEmail(
           req.body.email,
           'Verify your email',
@@ -79,69 +111,21 @@ export const register = async (req: Request, res: Response) => {
           </div>
           `
         );
-      } catch (error) {
-        throw error;
       }
-
-      return res.status(201).json({
-        success: true,
-        message: 'Please verify your email to complete registration',
-      });
+    },
+    {
+      maxWait: 10000,
+      timeout: 30000,
     }
+  );
 
-    await prismaClient.$transaction(
-      async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            username: req.body.username,
-            email: req.body.email,
-            otp: otpHash,
-            otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
-            isVerified: false,
-            password: hashSync(req.body.password, 12),
-          },
-        });
-
-        token = jwt.sign({ id: user.id }, JWT_SECRET!);
-
-        if (user) {
-          try {
-            await sendEmail(
-              req.body.email,
-              'Verify your email',
-              `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2 style="color: #333;">Email Verification</h2>
-            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
-            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
-            <p>This OTP will expire in 10 minutes.</p>
-            <p>If you did not request this, please ignore this email.</p>
-            <br />
-            <p>Best regards,<br/>Expense Tracker Team</p>
-          </div>
-          `
-            );
-          } catch (error) {
-            throw error;
-          }
-        }
-      },
-      {
-        maxWait: 5000, // default: 2000
-        timeout: 10000, // default: 5000
-      }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully, Please verify your email',
-      data: {
-        accessToken: token || null,
-      },
-    });
-  } catch (error) {
-    throw error;
-  }
+  res.status(201).json({
+    success: true,
+    message: 'User registered successfully, Please verify your email',
+    data: {
+      accessToken: token || null,
+    },
+  });
 };
 
 // SECTION: Verify email
@@ -149,11 +133,8 @@ export const register = async (req: Request, res: Response) => {
 export const verifyEmail = async (req: Request, res: Response) => {
   const token = req.query.token as string;
   const { otp } = req.body;
-  try {
-    VerifyOTPSchema.parse({ otp: +otp });
-  } catch (error) {
-    throw error;
-  }
+
+  VerifyOTPSchema.parse({ otp: +otp });
 
   if (!token || typeof token !== 'string')
     throw new BadRequestError('Invalid or missing token');
@@ -262,11 +243,7 @@ export const resendOtp = async (req: Request, res: Response) => {
 // SECTION: Login user
 
 export const login = async (req: Request, res: Response) => {
-  try {
-    LoginSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+  LoginSchema.parse(req.body);
 
   const { username, password } = req.body;
 
@@ -277,7 +254,7 @@ export const login = async (req: Request, res: Response) => {
         username,
       },
     });
-  } catch (error) {
+  } catch {
     throw new NotFoundError('User not found');
   }
 
@@ -330,11 +307,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
       const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
 
-      try {
-        await sendEmail(
-          user.email,
-          'Reset your password',
-          `
+      await sendEmail(
+        user.email,
+        'Reset your password',
+        `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2 style="color: #333;">Password Reset Request</h2>
         <p>We received a request to reset your password. Click the link below to set a new password:</p>
@@ -345,10 +321,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         <p>Best regards,<br/>Expense Tracker Team</p>
       </div>
      `
-        );
-      } catch (error) {
-        throw error;
-      }
+      );
     },
     {
       maxWait: 5000, // default: 2000
@@ -414,12 +387,7 @@ export const getAccessToken = async (req: Request, res: Response) => {
   if (!refreshToken)
     throw new NotFoundError('No refresh token present, Please login again');
 
-  let decoded;
-  try {
-    decoded = jwt.verify(refreshToken, JWT_SECRET!) as IJwtPayload;
-  } catch (error) {
-    throw error;
-  }
+  const decoded = jwt.verify(refreshToken, JWT_SECRET!) as IJwtPayload;
 
   if (!decoded.id)
     throw new NotFoundError('No refresh token present, Please login again');
@@ -431,7 +399,7 @@ export const getAccessToken = async (req: Request, res: Response) => {
         id: +decoded.id,
       },
     });
-  } catch (error) {
+  } catch {
     throw new NotFoundError('User not found, Please login again');
   }
 

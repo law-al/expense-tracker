@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ApiError, ErrorCodes } from '../exceptions/index.js';
 import { ZodError } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
@@ -75,6 +75,7 @@ const devErrorV2 = (err: Error, res: Response) => {
       stack: err.stack,
     });
   } else {
+    console.error('ERROR 💥', err);
     res.status(500).json({
       success: false,
       message: 'Something went wrong',
@@ -101,10 +102,10 @@ const prodError = (err: Error, res: Response) => {
 export const globalErrorHandler = (
   error: Error,
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): void => {
   let err: Error = error;
+  console.log('Global Error Handler:', err);
   if (error instanceof ZodError) err = handleZodError(error);
   // prettier-ignore
   if (error.name === 'PrismaClientKnownRequestError')

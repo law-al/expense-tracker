@@ -13,11 +13,7 @@ export const deleteMe = async (req: Request, res: Response) => {};
 export const changePassword = async (req: Request, res: Response) => {
   if (!req.user) return;
 
-  try {
-    ChangeUserPasswordSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+  ChangeUserPasswordSchema.parse(req.body);
 
   const { currentPassword, newPassword } = req.body;
 

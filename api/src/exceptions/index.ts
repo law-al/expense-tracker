@@ -7,7 +7,7 @@ export enum ErrorCodes {
   INTERNAL_SERVER_ERROR = 1006,
   BAD_REQUEST = 1007,
 }
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class ApiError extends Error {
   statusCode: number;
   errorCode?: ErrorCodes;

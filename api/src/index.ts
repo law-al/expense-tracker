@@ -7,7 +7,6 @@ import { PORT } from './secret.js';
 import rootRoute from './routes/index.js';
 import logger from './utils/logger.js';
 import { globalErrorHandler } from './middleware/global-error.js';
-import { rateLimit } from './middleware/limiter.js';
 
 const app: Express = express();
 

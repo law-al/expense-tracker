@@ -4,11 +4,14 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon",
-    "build": "cross-env NODE_ENV=production prisma migrate deploy && prisma generate && tsc",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "build": "cross-env NODE_ENV=production prisma generate && tsc",
+    "build:prod": "dotenv -e .env.production -- prisma migrate deploy && dotenv -e .env.production -- prisma generate && tsc",
+    "start": "dotenv -e .env.production node dist/index.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "seed": "prisma db seed",
+    "seed:prod": "dotenv -e .env.production -- tsx prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -28,6 +31,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.3.1",
     "cross-env": "^10.0.0",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "morgan": "^1.10.1",

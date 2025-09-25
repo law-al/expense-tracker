@@ -40,11 +40,8 @@ export const createTransaction = async (
   next: NextFunction
 ) => {
   //STEP: Validate the request body
-  try {
-    CreateTransactionSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+
+  CreateTransactionSchema.parse(req.body);
 
   //STEP: check if amount is present
   if (!req.body.amount) {
@@ -81,7 +78,7 @@ export const createTransaction = async (
         return next(new BadRequestError('Insufficient balance'));
       }
     }
-  } catch  {
+  } catch {
     throw new NotFoundError('Account not found');
   }
 
@@ -93,7 +90,7 @@ export const createTransaction = async (
         id: +req.body.categoryId,
       },
     });
-  } catch  {
+  } catch {
     throw new NotFoundError('Category not found');
   }
 
@@ -157,11 +154,8 @@ export const createTransferTransaction = async (
   //NOTE: if trasaction type is transfer then we need to update two accounts
 
   //STEP: Validate the request body
-  try {
-    CreateTransferTransactionSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+
+  CreateTransferTransactionSchema.parse(req.body);
 
   //STEP: Check if amount is present
   if (!req.body.amount) {
@@ -278,8 +272,7 @@ export const createTransferTransaction = async (
 
 export const getUserExpensesAggregrate = async (
   req: Request,
-  res: Response,
-
+  res: Response
 ) => {
   if (!req.user) return;
 
@@ -334,11 +327,7 @@ export const getUserExpensesAggregrate = async (
 
 // SECTION: Get recent transactions for the logged in user
 
-export const getRecentTransactions = async (
-  req: Request,
-  res: Response,
-
-) => {
+export const getRecentTransactions = async (req: Request, res: Response) => {
   if (!req.user) return;
 
   const recentTransactions = await prismaClient.transaction.findMany({
@@ -376,10 +365,7 @@ export const getRecentTransactions = async (
 
 // SECTION: Get transaction history for the logged in user
 
-export const getTransactionHistory = async (
-  req: Request,
-  res: Response,
-) => {
+export const getTransactionHistory = async (req: Request, res: Response) => {
   if (!req.user) return;
   const period = req.query?.period || 2025;
 

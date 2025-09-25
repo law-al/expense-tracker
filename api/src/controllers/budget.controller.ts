@@ -54,11 +54,7 @@ const getPercentage = (expense: number, budget: number): number => {
 export const createBudget = async (req: Request, res: Response) => {
   if (!req.user) return;
 
-  try {
-    CreateBudgetSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+  CreateBudgetSchema.parse(req.body);
 
   // STEP: check the period and assign startDate and endDate accordingly
   const { startDate, endDate } = getPeriod(req.body.period.toLowerCase());

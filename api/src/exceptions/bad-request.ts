@@ -1,5 +1,5 @@
 import { ApiError, ErrorCodes } from './index.js';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class BadRequestError extends ApiError {
   constructor(
     message: string,

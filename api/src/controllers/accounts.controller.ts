@@ -17,11 +17,8 @@ export const createAccount = async (
   if (!req.user) return;
 
   //STEP: Validate request body
-  try {
-    CreateAccountSchema.parse(req.body);
-  } catch (error) {
-    throw error;
-  }
+
+  CreateAccountSchema.parse(req.body);
 
   //STEP: Check if account type exists and belongs to the user (if createdBy is not null)
   // User can only use account types that are public (createdBy is null) or created by themselves
@@ -135,6 +132,7 @@ export const updateAccount = async (
   ];
 
   allowedKeys.forEach((key) => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     if (req.body[key] !== undefined) {
       (updateData as any)[key] = req.body[key];
     }
@@ -226,13 +224,13 @@ export const getTotalBalance = async (req: Request, res: Response) => {
 
 //SECTION: Create account type
 
-export const createAccountType = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.user) return;
-};
+// export const createAccountType = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   if (!req.user) return;
+// };
 
 // SECTION: get all default account types
 
