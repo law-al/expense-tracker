@@ -40,7 +40,11 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "lib": ["ES2017", "DOM", "DOM.Iterable"]
+    "lib": ["ES2017", "DOM", "DOM.Iterable"],
+
+    // Module Resolution
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
