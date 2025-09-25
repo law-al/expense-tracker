@@ -1,12 +1,11 @@
 {
   "name": "expense-tracker",
   "version": "1.0.0",
-  "main": "dist/api/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon",
     "build:prod": "dotenv -e .env.production -- prisma migrate deploy && dotenv -e .env.production -- prisma generate && tsc",
-    "vercel-build": "prisma migrate deploy && prisma generate && tsc",
-    "start": "dotenv -e .env.production node dist/api/index.js",
+    "start": "dotenv -e .env.production node dist/index.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "clean": "rimraf dist",
