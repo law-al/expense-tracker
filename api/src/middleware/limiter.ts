@@ -1,5 +1,5 @@
 import { rateLimit as createRateLimit } from 'express-rate-limit';
-import slowdown from 'express-slow-down';
+import { slowDown as createSlowDown } from 'express-slow-down';
 
 export const rateLimit = (windowMs: number = 15 * 60 * 1000, max: number) => {
   return createRateLimit({
@@ -15,7 +15,7 @@ export const speedLimiter = (
   delayAfter: number = 10,
   delayMs: number = 500
 ) => {
-  return slowdown({
+  return createSlowDown({
     windowMs,
     delayAfter,
     delayMs: (hits: number) => hits * delayMs,
