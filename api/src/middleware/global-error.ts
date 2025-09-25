@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ApiError, ErrorCodes } from '../exceptions/index.js';
 import { ZodError } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
@@ -102,7 +102,8 @@ const prodError = (err: Error, res: Response) => {
 export const globalErrorHandler = (
   error: Error,
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): void => {
   let err: Error = error;
   console.log('Global Error Handler:', err);
