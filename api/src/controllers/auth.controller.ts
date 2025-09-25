@@ -17,6 +17,7 @@ import { sendEmail } from '../utils/send-emal.js';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
+  iat?: number;
 }
 
 const generateOtp = () => {

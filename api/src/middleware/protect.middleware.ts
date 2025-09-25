@@ -10,6 +10,7 @@ import logger from '../utils/logger.js';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;
+  iat?: number;
 }
 
 export const protect = async (

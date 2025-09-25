@@ -1,5 +1,5 @@
 import express from 'express';
-import type { Express } from 'express';
+import type { Express, Request, Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -31,7 +31,7 @@ app.use(globalErrorHandler);
 
 logger.info(`🚀 My app is running! Process ID: ${process.pid}`);
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Express on Vercel!');
 });
 
