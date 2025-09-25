@@ -1,4 +1,3 @@
-import app from './src/index.js';
+import app from './dist/index.js';
 
-// Export the app for serverless deployment
 export default app;

@@ -1,5 +1,17 @@
 {
-  "version": 2,
-  "builds": [{ "src": "api/dist/index.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "api/dist/index.js" }]
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
 }
