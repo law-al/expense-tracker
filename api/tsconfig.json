@@ -3,7 +3,7 @@
   "compilerOptions": {
     // File Layout
     "rootDir": "./",
-    "outDir": "./dist",
+    "outDir": "./dist/api",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -46,6 +46,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["index.ts", "src/**/*", "types/**/*", "**/*.d.ts"],
+  "include": ["./**/*.ts", "src/**/*", "types/**/*", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
