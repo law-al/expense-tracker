@@ -1,8 +1,8 @@
-import limiter from 'express-rate-limit';
+import { rateLimit as createRateLimit } from 'express-rate-limit';
 import slowdown from 'express-slow-down';
 
 export const rateLimit = (windowMs: number = 15 * 60 * 1000, max: number) => {
-  return limiter({
+  return createRateLimit({
     windowMs,
     max,
     standardHeaders: true,
