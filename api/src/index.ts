@@ -11,15 +11,16 @@ import { rateLimit } from './middleware/limiter.js';
 
 const app: Express = express();
 
-process.on('uncaughtException', () => {
+process.on('uncaughtException', (err) => {
+  console.error('There was an uncaught error', err);
   process.exit(1);
 });
 
-process.on('unhandledRejection', () => {
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection', err);
   process.exit(1);
 });
 
-app.use(rateLimit(30 * 60 * 1000, 100)); // 100 requests per 15 minutes per IP
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
