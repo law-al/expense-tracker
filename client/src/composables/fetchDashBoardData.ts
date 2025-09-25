@@ -28,7 +28,6 @@ export const useDashboardDataV2 = () => {
       await categoryStore.fetchExpenseCategories()
       await categoryStore.fetchIncomeCategories()
     } catch (error: unknown) {
-      error
       if (error instanceof Error) {
         dashboardState.fetchErrorMessage = error.message
       } else {
