@@ -1,7 +1,13 @@
 <template>
   <app-layout>
     <!-- Loading -->
-    <loading-modal :is-submitting="isLoading" />
+    <loading-modal :is-submitting="isLoading">
+      <template #statusText>
+        <p class="text-white italic text-sm font-medium tracking-wide animate-pulse">
+          Loading transaction history...
+        </p>
+      </template>
+    </loading-modal>
 
     <div class="min-h-[85vh]">
       <!-- Header -->

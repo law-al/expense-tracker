@@ -2,7 +2,7 @@
   <!-- Full Screen Loader -->
   <LoadingModal :is-submitting="isSubmitting">
     <template #statusText>
-      <p class="text-white text-sm font-medium tracking-wide animate-pulse">
+      <p class="text-white italic text-sm font-medium tracking-wide animate-pulse">
         {{ transactionType === 'income' ? 'Adding your income...' : 'Adding your expense...' }}
       </p>
     </template>

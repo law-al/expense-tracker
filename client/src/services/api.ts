@@ -3,7 +3,7 @@ import axios from 'axios'
 // Create a custom Axios instance
 const api = axios.create({
   // baseURL: 'https://expense-tracker-0b3c.onrender.com/api/v1/',
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: import.meta.env.VITE_BASE_URL || 'http://localhost:5000/api/v1/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

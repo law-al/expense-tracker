@@ -9,7 +9,9 @@
       <span class="loader"></span>
       <slot name="statusText">
         <!-- Status Text -->
-        <p class="text-white text-sm font-medium tracking-wide">Submitting your data...</p>
+        <p class="text-white italic text-sm font-medium tracking-wide animate-pulse">
+          Submitting your data...
+        </p>
       </slot>
     </div>
   </div>

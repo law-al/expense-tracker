@@ -1,15 +1,19 @@
 <template>
-  <!-- Submiting Budget Overlay -->
-  <loading-modal :is-submitting="isSubmitting">
+  <!-- Single Loading Modal -->
+  <loading-modal :is-submitting="isSubmitting || isLoading">
     <template #statusText>
-      <p>Adding Budget...</p>
-    </template>
-  </loading-modal>
-
-  <!-- Loading Overlay -->
-  <loading-modal :is-submitting="isLoading">
-    <template #statusText>
-      <p>Fetching Budget...</p>
+      <p
+        class="text-white italic text-sm font-medium tracking-wide animate-pulse"
+        v-if="isSubmitting"
+      >
+        Adding Budget...
+      </p>
+      <p
+        class="text-white italic text-sm font-medium tracking-wide animate-pulse"
+        v-else-if="isLoading"
+      >
+        Fetching Budget...
+      </p>
     </template>
   </loading-modal>
 
@@ -179,9 +183,10 @@ const handleCloseSuccessModal = async () => {
 watch(period, async (newValue) => {
   try {
     fetchErrorMessage.value = null
-    isSubmitting.value = true
+    isLoading.value = true
     await nextTick()
     await budgetStore.fetchBudgets(newValue)
+    isLoading.value = false
   } catch (error: unknown) {
     if (error instanceof Error) {
       fetchErrorMessage.value = error.message
@@ -189,9 +194,8 @@ watch(period, async (newValue) => {
       const axiosError = error as AxiosError<{ message: string }>
       fetchErrorMessage.value =
         axiosError.response?.data?.message || 'There was an error fetching budget data.'
+      isLoading.value = false
     }
-  } finally {
-    isSubmitting.value = false
   }
 })
 

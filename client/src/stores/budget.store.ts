@@ -32,20 +32,21 @@ export const useBudgetStore = defineStore('budget', () => {
 
     controller = new AbortController()
     const signal = controller.signal
-    axios
-      .all(endpoints.map((endpoint) => api.get(endpoint, { params: { period: params }, signal })))
-      .then(
-        axios.spread((budgetResponse, budgetByCategoryResponse) => {
-          budgets.value = budgetResponse.data.data
-          budgetByCategory.value = budgetByCategoryResponse.data.data
-        }),
+
+    try {
+      const responses = await axios.all(
+        endpoints.map((endpoint) => api.get(endpoint, { params: { period: params }, signal })),
       )
-      .catch((error) => {
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request was aborted')
-        }
-        throw error
-      })
+
+      const [budgetResponse, budgetByCategoryResponse] = responses
+      budgets.value = budgetResponse.data.data
+      budgetByCategory.value = budgetByCategoryResponse.data.data
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request was aborted')
+      }
+      throw error
+    }
   }
 
   const fetchBudgetsByCategory = async (params: string = 'monthly') => {
