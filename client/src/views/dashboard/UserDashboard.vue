@@ -2,7 +2,7 @@
   <app-layout>
     <loading-modal :is-submitting="isLoading">
       <template #statusText>
-        <p class="text-white text-sm font-medium tracking-wide">Loading dashboard datas...</p>
+        <p class="text-white text-sm font-medium tracking-wide">Loading dashboard data...</p>
       </template>
     </loading-modal>
 

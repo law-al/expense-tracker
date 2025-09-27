@@ -447,8 +447,8 @@ export const getTransactionHistory = async (req: Request, res: Response) => {
 
   const year = new Date(+period, 0, 1);
 
-  const startDate = startOfYear(+year);
-  const endDate = endOfYear(+year);
+  const startDate = startOfYear(year);
+  const endDate = endOfYear(year);
 
   const transaction = await prismaClient.transaction.findMany({
     where: {
