@@ -102,7 +102,7 @@ const { getTransactionHistory } = storeToRefs(transactionStore)
 const isLoading = ref<boolean>(false)
 const fetchErrorMessage = ref<string | null>('')
 
-const setAmountColor = (transactionTypeId: number) => {
+const setAmountColor = (transactionTypeId: number | string) => {
   switch (transactionTypeId) {
     case 1:
       return 'text-red-500'

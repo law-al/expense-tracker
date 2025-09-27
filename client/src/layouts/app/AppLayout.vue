@@ -76,7 +76,6 @@ import AddTransaction from '@/components/transactions/AddTransaction.vue'
 import { useGlobalStore } from '@/stores/global.store'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
-import { watch } from 'vue'
 
 // Drawer state
 const globalStore = useGlobalStore()
@@ -88,13 +87,6 @@ const finishTransactionAndDismiss = () => {
   openTransactionModal.value = false
   document.body.style.pointerEvents = 'auto'
 }
-
-watch(
-  () => openTransactionModal.value,
-  (newVal) => {
-    ;('Add Transaction Modal Visible:', newVal)
-  },
-)
 </script>
 
 <style scoped>
