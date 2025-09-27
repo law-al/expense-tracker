@@ -199,6 +199,11 @@ export const updateAccount = async (
 
 export const getAccounts = async (req: Request, res: Response) => {
   if (!req.user) return;
+  const user = await prismaClient.user.findUnique({
+    where: { id: +req.user?.id },
+  });
+  if (!user) throw new NotFoundError('User not found');
+
   const accounts: AccountWithDetails[] = await prismaClient.account.findMany({
     where: {
       userId: +req.user?.id,
@@ -235,6 +240,7 @@ export const getAccounts = async (req: Request, res: Response) => {
         (acc, account) => acc + (account?.currentBalance || 0),
         0
       ),
+      username: user.username,
     },
   });
 };

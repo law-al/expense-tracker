@@ -41,6 +41,7 @@ export const useCategoryStore = defineStore('category', () => {
   const fetchExpenseCategories = async () => {
     try {
       const response = await api.get('/category/fetch-expense')
+
       if (response.status === 200) {
         expenseCategories.value = response.data.data
       }

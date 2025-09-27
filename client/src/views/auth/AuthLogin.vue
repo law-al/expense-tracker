@@ -90,11 +90,10 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { reactive, ref } from 'vue'
 import api from '@/services/api'
 import type { AxiosError } from 'axios'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user.store'
 import { useAccountStore } from '@/stores/account.store'
 import { useDashboardDataV2 } from '@/composables/fetchDashBoardData'
-import { nextTick } from 'vue'
 
 const schema = z.object({
   username: z
@@ -138,18 +137,21 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       } else {
         router.push('/dashboard')
       }
-
-      await nextTick()
     }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>
 
     errorFlag.value =
       axiosError.response?.data?.message || 'There was an error submitting the form.'
-  } finally {
     isLoading.value = false
   }
 }
+
+onBeforeRouteLeave(() => {
+  if (isLoading.value) {
+    isLoading.value = false
+  }
+})
 </script>
 
 <style scoped></style>

@@ -1,6 +1,11 @@
 <template>
   <!-- Create Budget Modal -->
-  <base-modal :open-modal="openModal" direction="bottom" @close-modal="handleCloseModal">
+  <base-modal
+    :open-modal="openModal"
+    direction="bottom"
+    @close-modal="handleCloseModal"
+    class="!w-full !max-w-full !h-full bg-gradient-to-b from-[#0b0b10] to-[#13131f] text-white !border-0 !ring-0"
+  >
     <template #title>
       <p>Create a Budget</p>
     </template>
@@ -11,14 +16,14 @@
           v-if="fetchErrorMessage"
           class="text-center text-red-500 italic text-xs block w-full py-2"
         >
-          {{ fetchErrorMessage }}</span
-        >
+          {{ fetchErrorMessage }}
+        </span>
 
         <div class="flex flex-col h-full">
           <div class="overflow-y-scroll scrollbar-hidden">
             <!-- Budget Amount Input -->
-            <div class="w-full border-b border-gray-700 p-4 mt-3">
-              <span class="text-xs text-center w-full block mb-1 text-soft-white">
+            <div class="w-full border-b border-white/10 p-6 mt-3">
+              <span class="text-xs block mb-2 tracking-wide uppercase text-indigo-400">
                 {{ selectedPeriod }} Budget (required)
               </span>
               <currency-input
@@ -26,92 +31,92 @@
                 :options="{
                   locale: 'en-US',
                   currency: 'USD',
-                  valueRange: {},
-                  hideCurrencySymbolOnFocus: true,
-                  hideGroupingSeparatorOnFocus: true,
-                  hideNegligibleDecimalDigitsOnFocus: true,
                   autoDecimalDigits: true,
-                  useGrouping: false,
-                  accountingSign: false,
+                  useGrouping: true,
                 }"
                 placeholder="$0.00"
                 :required="true"
-                class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0 text-white placeholder:text-cool-gray"
+                class="w-full text-5xl h-[100px] bg-transparent font-light text-center focus:outline-none placeholder:text-gray-600 text-indigo-400"
               />
             </div>
 
             <!-- Budget Period -->
-            <div class="px-4 mt-4 border-b border-gray-700 pb-4">
-              <p class="text-sm text-cool-gray mb-1">Budget Period (required)</p>
+            <div class="px-6 py-5 border-b border-white/10">
+              <p class="text-xs text-gray-400 mb-2">Budget Period (required)</p>
               <u-select
                 v-model="selectedPeriod"
                 :items="items"
                 size="lg"
                 :ui="{
-                  base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-transparent bg-gray-950 z-[100]',
-                  item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
-                  content: 'bg-gray-950 text-white rounded-md z-[100]',
+                  base: 'w-full bg-gray-800 border border-white/20 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500',
+                  item: 'text-white cursor-pointer hover:bg-gray-600 hover:text-white px-4 py-2',
+                  content: 'bg-gray-800 text-white rounded-lg border border-white/10 z-[9999]',
                 }"
                 class="!w-full"
               />
             </div>
 
             <!-- Add name input -->
-            <div class="my-2 px-4 border-b border-gray-700 pb-4">
-              <p class="text-sm text-cool-gray mb-1">Name (required)</p>
+            <div class="px-6 py-5 border-b border-white/10">
+              <p class="text-xs text-gray-400 mb-2">Name (required)</p>
               <input
                 type="text"
                 v-model="budgetName"
                 placeholder="e.g., Groceries, Entertainment"
-                class="w-full bg-gray-900 text-white placeholder:text-cool-gray rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
             <!-- Category Selection -->
-            <div class="">
-              <!-- Select Category Button -->
+            <div class="px-6 py-5 border-b border-white/10">
+              <p class="text-xs text-gray-400 mb-2">Category</p>
               <div
                 @click="openCategoryModal = true"
-                class="flex items-center justify-between p-4 border-b border-gray-700 cursor-pointer text-gray-500 hover:text-soft-white"
+                class="flex items-center justify-between cursor-pointer p-3 rounded-lg border border-white/10 hover:bg-white/5"
               >
-                <p class="text-sm mb-2">Select Category</p>
+                <p class="text-sm">
+                  {{ selectedCategory ? selectedCategory.name : 'Select Category' }}
+                </p>
                 <u-icon name="i-lsicon-right-filled" class="size-5" />
               </div>
 
               <!-- Selected Category Display -->
-              <div v-if="selectedCategory" class="mt-3 border-b border-gray-700 pb-4">
-                <p class="text-sm text-cool-gray px-4 mt-2 mb-1">Selected Category</p>
+              <div v-if="selectedCategory" class="mt-3 flex items-center gap-3">
                 <div
-                  class="flex items-center gap-4 px-4 py-4 cursor-pointer text-gray-400 hover:text-gray-200"
+                  class="p-2 rounded-lg border border-white/20"
+                  :style="{
+                    backgroundColor: `${colorToHex(selectedCategory?.color || 'white')}22`,
+                  }"
                 >
-                  <div class="border border-gray-700 rounded-lg p-1 bg-white/10">
-                    <u-icon :name="selectedCategory.icon || ''" class="size-6" />
-                  </div>
-                  <div class="">
-                    <p class="text-sm">{{ selectedCategory.name }}</p>
-                  </div>
+                  <u-icon
+                    :name="selectedCategory.icon || ''"
+                    class="size-6"
+                    :style="{ color: colorToHex(selectedCategory?.color || 'white') }"
+                  />
                 </div>
+                <p class="text-sm font-medium">{{ selectedCategory.name }}</p>
               </div>
             </div>
 
             <!-- Note Section -->
-            <div class="mt-4 px-4">
-              <p class="text-sm text-cool-gray mb-1">Note (optional)</p>
+            <div class="px-6 py-5">
+              <p class="text-xs text-gray-400 mb-2">Note (optional)</p>
               <textarea
                 rows="3"
                 placeholder="Add a note..."
-                class="w-full bg-gray-900 text-white placeholder:text-cool-gray rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-indigo-600 resize-none"
+                class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
               ></textarea>
             </div>
           </div>
 
           <!-- Create Budget Button -->
-          <div class="mt-10 px-4">
+          <div class="p-6">
             <u-button
               :disabled="!budgetAmount || !selectedCategory || isSubmitting || !budgetName"
               :loading="isSubmitting"
               @click="handleCreateBudget"
-              class="w-full rounded-sm py-3 text-white justify-center cursor-pointer !bg-indigo-700 hover:bg-indigo-800 disabled:!bg-indigo-400"
+              size="xl"
+              class="justify-center w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/40 font-medium text-white shadow-md shadow-indigo-500/30"
             >
               Create Budget
             </u-button>
@@ -122,14 +127,14 @@
   </base-modal>
 
   <!-- Budget Category Modal -->
-  <div class="">
-    <budget-category :open-modal="openCategoryModal" @close-modal="openCategoryModal = false" />
-  </div>
+  <budget-category :open-modal="openCategoryModal" @close-modal="openCategoryModal = false" />
 </template>
 
 <script setup lang="ts">
 import api from '@/services/api'
+import { useBudgetStore } from '@/stores/budget.store'
 import { useCategoryStore } from '@/stores/category.store'
+import { colorToHex } from '@/utils/colorUtils'
 import type { AxiosError } from 'axios'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -154,6 +159,7 @@ const handleCloseModal = () => {
 
 const categoryStore = useCategoryStore()
 const { selectedCategory } = storeToRefs(categoryStore)
+const budgetStore = useBudgetStore()
 
 const fetchErrorMessage = ref<string | null>(null)
 const budgetAmount = ref<number | null>(null)
@@ -197,6 +203,8 @@ const handleCreateBudget = async () => {
       budgetAmount.value = null
       categoryStore.setCategory(null)
       emit('successStatus', true)
+
+      await budgetStore.fetchBudgets(selectedPeriod.value.toLowerCase())
     }
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ message: string }>

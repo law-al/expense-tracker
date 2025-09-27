@@ -6,6 +6,7 @@ import api from '@/services/api'
 interface AccountsOverview {
   accounts: AccountWithDetails[]
   totalBalance: number
+  username?: string
 }
 
 export const useAccountStore = defineStore('accounts', () => {

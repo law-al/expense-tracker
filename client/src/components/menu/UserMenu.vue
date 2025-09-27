@@ -76,7 +76,7 @@
             size="xl"
             @click="handleConfirmLogout"
             color="warning"
-            class="w-full justify-center !rounded-xs text-white !bg-red-700 hover:bg-red-600 cursor-pointer"
+            class="justify-center w-full py-3 rounded-xl text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-lg transition-all"
             >Logout</u-button
           >
         </div>

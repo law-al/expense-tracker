@@ -106,7 +106,6 @@ export const globalErrorHandler = (
   next: NextFunction
 ): void => {
   let err: Error = error;
-  console.log('Global Error Handler:', err);
   if (error instanceof ZodError) err = handleZodError(error);
   // prettier-ignore
   if (error.name === 'PrismaClientKnownRequestError')

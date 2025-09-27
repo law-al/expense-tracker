@@ -443,12 +443,12 @@ export const getRecentTransactions = async (req: Request, res: Response) => {
 
 export const getTransactionHistory = async (req: Request, res: Response) => {
   if (!req.user) return;
-  const period = req.query?.period || 0;
+  const period = req.query?.period || new Date().getFullYear().toString();
 
-  const year = new Date(+period, 0, 1).getFullYear();
+  const year = new Date(+period, 0, 1);
 
-  const startDate = startOfYear(+year);
-  const endDate = endOfYear(+year);
+  const startDate = startOfYear(year);
+  const endDate = endOfYear(year);
 
   const transaction = await prismaClient.transaction.findMany({
     where: {
