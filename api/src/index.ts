@@ -3,7 +3,7 @@ import type { Express, Request, Response } from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { PORT } from './secret.js';
+import { CLIENT_URL, PORT } from './secret.js';
 import rootRoute from './routes/index.js';
 import logger from './utils/logger.js';
 import { globalErrorHandler } from './middleware/global-error.js';
@@ -22,7 +22,7 @@ process.on('unhandledRejection', (err) => {
 
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 
 app.use('/api/v1', rootRoute);
