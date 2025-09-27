@@ -1,8 +1,19 @@
 <template>
-  <app-layout>
-    <!-- Loading Overlay -->
-    <loading-modal :is-submitting="isSubmitting" />
+  <!-- Submiting Budget Overlay -->
+  <loading-modal :is-submitting="isSubmitting">
+    <template #statusText>
+      <p>Adding Budget...</p>
+    </template>
+  </loading-modal>
 
+  <!-- Loading Overlay -->
+  <loading-modal :is-submitting="isLoading">
+    <template #statusText>
+      <p>Fetching Budget...</p>
+    </template>
+  </loading-modal>
+
+  <app-layout>
     <!-- Success Modal -->
     <SuccessModal
       :success-modal="showSuccessModal"
@@ -115,23 +126,21 @@
 import BudgetCard from '@/components/budget/BudgetCard.vue'
 import CreateBudget from '@/components/budget/CreateBudget.vue'
 import SuccessModal from '@/components/common/SuccessModal.vue'
-import { useDashboardDataV2 } from '@/composables/fetchDashBoardData'
 import { useBudgetStore } from '@/stores/budget.store'
 import { useCategoryStore } from '@/stores/category.store'
 import { formatCurrency } from '@/utils/formatters'
 import type { AxiosError } from 'axios'
 import { storeToRefs } from 'pinia'
-import { nextTick, ref, watch } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 const categoryStore = useCategoryStore()
 const budgetStore = useBudgetStore()
 const { getBudgets, getBudgetsByCategory } = storeToRefs(budgetStore)
-const { refreshDashBoard } = useDashboardDataV2()
 
 const openModal = ref<boolean>(false)
 const budgetAmount = ref<number | null>(null)
 const isSubmitting = ref<boolean>(false)
+const isLoading = ref<boolean>(true)
 const showSuccessModal = ref<boolean>(false)
 const fetchErrorMessage = ref<string | null>(null)
 
@@ -194,8 +203,22 @@ watch([isSubmitting, showSuccessModal], ([newValForSubmit, newValForSuccess]) =>
   }
 })
 
-onBeforeRouteLeave(async () => {
-  await refreshDashBoard()
+onMounted(async () => {
+  try {
+    isLoading.value = true
+    await nextTick()
+    await budgetStore.fetchBudgets(period.value)
+  } catch (error) {
+    if (error instanceof Error) {
+      fetchErrorMessage.value = error.message
+    } else {
+      const axiosError = error as AxiosError<{ message: string }>
+      fetchErrorMessage.value =
+        axiosError.response?.data?.message || 'There was an error fetching budget data.'
+    }
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 

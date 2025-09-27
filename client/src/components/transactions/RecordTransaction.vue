@@ -2,7 +2,7 @@
   <!-- Full Screen Loader -->
   <LoadingModal :is-submitting="isSubmitting">
     <template #statusText>
-      <p class="text-white text-sm font-medium tracking-wide">
+      <p class="text-white text-sm font-medium tracking-wide animate-pulse">
         {{ transactionType === 'income' ? 'Adding your income...' : 'Adding your expense...' }}
       </p>
     </template>
@@ -16,9 +16,9 @@
   >
     <template #main>
       <div
-        class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        class="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/30 animate-scale-in"
       >
-        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -28,8 +28,8 @@
         </svg>
       </div>
 
-      <h3 class="text-lg font-semibold text-indigo-200 mb-2">Success!</h3>
-      <p class="text-gray-300 text-sm">
+      <h3 class="text-xl font-semibold text-white mb-2">Success!</h3>
+      <p class="text-gray-400 text-sm">
         {{
           transactionType === 'income'
             ? 'Your income has been added successfully.'
@@ -39,6 +39,7 @@
     </template>
   </SuccessModal>
 
+  <!-- Drawer -->
   <UDrawer
     v-model:open="openExpenseView"
     direction="left"
@@ -59,152 +60,135 @@
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0 w-full',
     }"
-    class="!w-[100%] !max-w-[100%] !h-[100%] !max-h-[100%] bg-gray-950 !border-0 !ring-0 text-white !p-0 !mt-0"
+    class="!w-full !max-w-full !h-full bg-gradient-to-b from-[#0b0b10] to-[#13131f] text-white !border-0 !ring-0"
   >
     <template #body>
-      <!-- Main Content -->
-      <div class="relative h-[100vh]">
+      <div class="relative h-screen flex flex-col">
+        <!-- Header -->
         <div
-          class="w-full h-[10vh] flex items-center justify-between px-4 pb-3 pt-3 border-b-2 border-gray-700"
+          class="w-full h-[10vh] flex items-center justify-between px-5 border-b border-white/10 bg-black/20 backdrop-blur-md"
         >
-          <h2 class="text-white font-semibold text-lg">
+          <h2 class="text-lg font-semibold">
             {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
           </h2>
-
-          <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="handleClose" />
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            class="hover:bg-white/10 rounded-full"
+            @click="handleClose"
+          />
         </div>
 
-        <div class="h-[90vh] flex flex-col justify-around">
-          <div class="">
-            <!-- Error Message -->
-            <p
-              v-show="displayError"
-              class="text-red-500 text-xs italic block w-full text-center mt-2"
-            >
+        <!-- Content -->
+        <div class="flex-1 flex flex-col justify-between overflow-y-auto">
+          <div>
+            <!-- Error -->
+            <p v-show="displayError" class="text-red-500 text-xs italic text-center mt-2">
               {{ displayError }}
             </p>
+
             <!-- Amount Input -->
-            <div class="w-full border-b border-gray-700 p-4 mt-3">
+            <div class="w-full border-b border-white/10 p-6">
               <span
-                class="text-xs text-center w-full block mb-1"
-                :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+                class="text-xs block mb-2 tracking-wide uppercase"
+                :class="transactionType === 'income' ? 'text-green-400' : 'text-red-400'"
               >
-                {{ transactionType === 'income' ? 'Income' : 'Expenses' }}</span
-              >
+                {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
+              </span>
               <currency-input
                 v-model="amount"
                 :options="{
                   locale: 'en-US',
                   currency: 'USD',
-                  valueRange: {},
-                  hideCurrencySymbolOnFocus: true,
-                  hideGroupingSeparatorOnFocus: true,
-                  hideNegligibleDecimalDigitsOnFocus: true,
                   autoDecimalDigits: true,
-                  useGrouping: false,
-                  accountingSign: false,
+                  useGrouping: true,
                 }"
                 placeholder="$0.00"
-                :required="true"
-                class="w-full text-5xl h-[100px] bg-transparent font-extralight text-center focus-within:outline-none placeholder:text-gray-600 active:outline-none active:border-none active:focus:outline-none focus:border-none focus:ring-0"
-                :class="transactionType === 'income' ? 'text-green-500' : 'text-red-500'"
+                class="w-full text-5xl h-[100px] bg-transparent font-light text-center focus:outline-none placeholder:text-gray-600"
+                :class="transactionType === 'income' ? 'text-green-400' : 'text-red-400'"
               />
             </div>
 
-            <div class="w-full flex flex-col justify-between">
-              <!-- Selected Account -->
-              <div class="flex items-center justify-between w-full p-4 border-b border-gray-700">
-                <div class="">
-                  <span class="font-extralight text-xs">Account</span>
-                  <p class="font-semibold text-sm">{{ selectedAccount?.accountType.name }}</p>
-                </div>
-                <div class="border border-gray-700 rounded-lg p-1 bg-white/10">
-                  <u-icon :name="selectedAccount?.accountType.icon || ''" class="size-6" />
-                </div>
+            <!-- Account -->
+            <div class="flex items-center justify-between w-full p-5 border-b border-white/10">
+              <div>
+                <span class="text-xs text-gray-400">Account</span>
+                <p class="font-medium">{{ selectedAccount?.accountType.name }}</p>
               </div>
+              <div class="p-2 bg-white/10 border border-white/10 rounded-xl">
+                <u-icon :name="selectedAccount?.accountType.icon || ''" class="size-6" />
+              </div>
+            </div>
 
-              <!-- Selected Category -->
-              <div class="flex items-center justify-between w-full p-4 border-b border-gray-700">
-                <div class="">
-                  <span class="font-extralight text-xs">Category</span>
-                  <p class="font-bold text-sm">{{ selectedCategory?.name }}</p>
-                </div>
+            <!-- Category -->
+            <div class="flex items-center justify-between w-full p-5 border-b border-white/10">
+              <div>
+                <span class="text-xs text-gray-400">Category</span>
+                <p class="font-semibold">{{ selectedCategory?.name }}</p>
+              </div>
+              <div
+                class="rounded-full p-2 border"
+                :style="{
+                  backgroundColor: `${colorToHex(selectedCategory?.color as string)}22`,
+                  borderColor: `${colorToHex(selectedCategory?.color as string)}33`,
+                }"
+              >
+                <u-icon
+                  :name="selectedCategory?.icon || ''"
+                  class="size-6"
+                  :style="{ color: colorToHex(selectedCategory?.color as string) }"
+                />
+              </div>
+            </div>
+
+            <!-- Sub Categories -->
+            <div
+              v-if="categoryStore.subCategories.length > 0 && transactionType === 'expense'"
+              class="flex items-center gap-3 overflow-x-auto p-5 border-b border-white/10"
+            >
+              <div v-for="subCategory in categoryStore.subCategories" :key="subCategory.id">
                 <div
-                  class="rounded-full border p-1"
-                  :style="{
-                    backgroundColor: `${colorToHex(selectedCategory?.color as string)}33`,
-                    borderColor: `${colorToHex(selectedCategory?.color as string)}33`,
-                  }"
+                  @click="handleSelectSubCategory(subCategory)"
+                  class="px-3 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  :class="
+                    selectedSubCategory?.id === subCategory.id
+                      ? 'bg-white/10 border border-white/20 shadow-sm'
+                      : 'border border-white/10 hover:bg-white/5'
+                  "
                 >
                   <u-icon
-                    :name="selectedCategory?.icon || ''"
-                    class="size-6"
-                    :style="{ color: colorToHex(selectedCategory?.color as string) }"
+                    :name="subCategory.icon || ''"
+                    class="size-5"
+                    :style="{ color: colorToHex(subCategory?.color as string) }"
                   />
+                  <span class="text-xs">{{ subCategory.name }}</span>
                 </div>
               </div>
+            </div>
 
-              <!-- Select Sub Category -->
-              <div
-                v-if="categoryStore.subCategories.length > 0 && transactionType === 'expense'"
-                class="flex items-center gap-2 overflow-x-auto p-4 border-b border-gray-700"
-              >
-                <div
-                  v-for="subCategory in categoryStore.subCategories"
-                  :key="subCategory.id"
-                  class="text-white"
-                >
-                  <div
-                    @click="handleSelectSubCategory(subCategory)"
-                    class="border border-gray-700 rounded-2xl p-2 flex items-center gap-2 cursor-pointer w-fit"
-                    :style="{
-                      backgroundColor:
-                        selectedSubCategory?.id === subCategory.id
-                          ? `${colorToHex(subCategory?.color as string)}33`
-                          : 'transparent',
-                      borderColor:
-                        selectedSubCategory?.id === subCategory.id
-                          ? `${colorToHex(subCategory?.color as string)}33`
-                          : '#88888833',
-                    }"
-                  >
-                    <u-icon
-                      :name="subCategory.icon || ''"
-                      class="size-5"
-                      :style="{
-                        color: colorToHex(subCategory?.color as string),
-                      }"
-                    />
-                    <span class="text-xs">{{ subCategory.name }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Note section -->
-              <div class="w-full p-4">
-                <label for="notes" class="font-extralight text-xs text-gray-400">Notes</label>
-                <textarea
-                  name="notes"
-                  id="notes"
-                  rows="3"
-                  :disabled="isLoading || isSubmitting"
-                  v-model="description"
-                  placeholder="Add a note (optional)"
-                  class="w-full mt-1 p-2 bg-transparent border border-gray-700 rounded-none text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-700 focus:border-gray-700"
-                ></textarea>
-              </div>
+            <!-- Notes -->
+            <div class="w-full p-5">
+              <label for="notes" class="text-xs text-gray-400">Notes</label>
+              <textarea
+                id="notes"
+                rows="3"
+                v-model="description"
+                placeholder="Add a note (optional)"
+                class="w-full mt-2 p-3 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              ></textarea>
             </div>
           </div>
 
           <!-- Submit -->
-          <div class="mt-auto px-2 py-2">
+          <div class="p-5">
             <u-button
               @click="handleAddExpense"
               :disabled="!amount || amount <= 0 || isSubmitting"
               :loading="isLoading || isSubmitting"
               size="xl"
-              class="w-full rounded-none bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/60 cursor-pointer font-light text-white justify-center"
-              label="Add Expense"
+              class="justify-center w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/40 font-medium text-white shadow-md shadow-indigo-500/30"
+              :label="transactionType === 'income' ? 'Add Income' : 'Add Expense'"
             />
           </div>
         </div>

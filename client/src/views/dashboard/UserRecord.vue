@@ -4,51 +4,72 @@
     <loading-modal :is-submitting="isLoading" />
 
     <div class="min-h-[85vh]">
+      <!-- Header -->
       <div class="w-full h-[10vh] flex items-center">
-        <h2 class="text-xl font-light pb-4 border-b border-gray-700 w-full">User Record</h2>
+        <h2 class="text-xl font-light pb-4 border-b border-gray-800 w-full text-white">
+          User Record
+        </h2>
       </div>
 
-      <!-- User record content goes here -->
-      <div class="h-[75vh] overflow-scroll">
+      <!-- User Record Content -->
+      <div class="h-[75vh] overflow-y-auto custom-scrollbar pr-1">
+        <!-- Empty state -->
         <div
           v-if="getTransactionHistory.length === 0"
           class="h-full flex items-center justify-center"
         >
-          <p class="text-cool-gray text-sm">No transactions available.</p>
+          <p class="text-gray-500 text-sm italic">No transactions available.</p>
         </div>
-        <div v-else class="flex flex-col gap-2">
+
+        <!-- Transaction groups -->
+        <div v-else class="flex flex-col gap-6">
           <div
             v-for="transaction in getTransactionHistory"
             :key="transaction.date"
-            class="border-b border-gray-700 py-4"
+            class="bg-gray-900/50 backdrop-blur-xl rounded-sm border border-gray-800 shadow-sm overflow-hidden"
           >
-            <p class="text-soft-white text-sm mb-3">{{ transaction.date }}</p>
-            <div
-              v-for="(tx, n) in transaction.transactions"
-              :key="n"
-              class="w-full p-2 flex items-center gap-4 mb-2"
-            >
-              <div
-                class="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-                :style="{ backgroundColor: `${colorToHex(tx.category.color as string)}33` }"
-              >
-                <u-icon
-                  :name="tx.category.icon || ''"
-                  class="size-4"
-                  :style="{ color: colorToHex(tx.category.color as string) }"
-                />
-              </div>
+            <!-- Date header -->
+            <div class="px-4 py-2 bg-gray-950/70 border-b border-gray-800 sticky top-0 z-10">
+              <p class="text-gray-300 text-xs font-medium tracking-wide">
+                {{ transaction.date }}
+              </p>
+            </div>
 
-              <div class="flex justify-between items-center flex-1">
-                <div class="">
-                  <p class="text-white font-light text-sm">{{ tx.category.name }}</p>
-                  <p class="text-cool-gray text-xs font-extralight">
+            <!-- Transactions for that date -->
+            <div class="flex flex-col divide-y divide-gray-800">
+              <div
+                v-for="(tx, n) in transaction.transactions"
+                :key="n"
+                class="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-800/50 transition"
+              >
+                <!-- Category Icon -->
+                <div
+                  class="w-[44px] h-[44px] rounded-full flex items-center justify-center shadow-inner"
+                  :style="{ backgroundColor: `${colorToHex(tx.category.color as string)}22` }"
+                >
+                  <u-icon
+                    :name="tx.category.icon || ''"
+                    class="size-5"
+                    :style="{ color: colorToHex(tx.category.color as string) }"
+                  />
+                </div>
+
+                <!-- Category + Account -->
+                <div class="flex flex-col flex-1">
+                  <p class="text-white text-sm font-medium">
+                    {{ tx.category.name }}
+                  </p>
+                  <p class="text-gray-500 text-xs font-light">
                     {{ tx.account.accountType.name }}
                   </p>
                 </div>
 
-                <div class="mt-2">
-                  <p class="text-sm font-semibold" :class="setAmountColor(tx.transactionType.id)">
+                <!-- Amount -->
+                <div class="text-right">
+                  <p
+                    class="text-sm font-semibold tracking-wide"
+                    :class="setAmountColor(tx.transactionType.id)"
+                  >
                     {{ formatCurrency(tx.amount) }}
                   </p>
                 </div>
@@ -111,4 +132,15 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped></style>
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 4px;
+}
+</style>
