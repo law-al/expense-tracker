@@ -52,21 +52,45 @@ export const createAccount = async (
     throw new UnAuthorizedError('You already have an account of this type');
 
   //STEP: Create account
-  await prismaClient.account.create({
-    data: {
-      userId: +req.user?.id,
-      name: req.body.accountName.toLowerCase(),
-      accountTypeId: accountType.id,
-      currency: req.body.currrency || 'USD',
-      openingBalance: req.body.openingBalance || 0,
-      currentBalance: req.body.openingBalance || 0,
-    },
-  });
+  await prismaClient.$transaction(
+    async (tx) => {
+      if (!req.user?.id) return;
+      await tx.account.create({
+        data: {
+          userId: +req.user?.id,
+          name: req.body.accountName.toLowerCase(),
+          accountTypeId: accountType.id,
+          currency: req.body.currrency || 'USD',
+          openingBalance: req.body.openingBalance || 0,
+          currentBalance: req.body.openingBalance || 0,
+        },
+      });
 
-  res.status(HttpStatus.CREATED).json({
-    success: true,
-    message: 'Account created successfully',
-  });
+      await tx.notification.create({
+        data: {
+          userId: +req.user?.id,
+          title: 'New Account Created',
+          message: `Your new account "${req.body.accountName}" has been created successfully.`,
+          type: 'ACCOUNT',
+          data: JSON.stringify({
+            accountName: req.body.accountName,
+            accountType: accountType.name,
+            openingBalance: req.body.openingBalance || 0,
+            currency: req.body.currrency || 'USD',
+          }),
+        },
+      });
+
+      res.status(HttpStatus.CREATED).json({
+        success: true,
+        message: 'Account created successfully',
+      });
+    },
+    {
+      maxWait: 10000,
+      timeout: 30000,
+    }
+  );
 };
 
 //SECTION: Update account
@@ -137,6 +161,26 @@ export const updateAccount = async (
       (updateData as any)[key] = req.body[key];
     }
   });
+
+  if (
+    openingBalance !== undefined &&
+    openingBalance !== account.openingBalance
+  ) {
+    await prismaClient.notification.create({
+      data: {
+        userId: +req.user?.id,
+        title: 'Account Opening Balance Changed',
+        message: `The opening balance for your account "${account.name}" has been changed from ${account.openingBalance} to ${openingBalance}.`,
+        type: 'ACCOUNT',
+        data: JSON.stringify({
+          previousBalance: account.openingBalance,
+          newBalance: openingBalance,
+          accountId: account.id,
+          accountName: account.name,
+        }),
+      },
+    });
+  }
 
   await prismaClient.account.update({
     where: {

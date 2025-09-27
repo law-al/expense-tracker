@@ -2,7 +2,8 @@ import axios from 'axios'
 
 // Create a custom Axios instance
 const api = axios.create({
-  baseURL: 'https://expense-tracker-mocha-two.vercel.app/',
+  // baseURL: 'https://expense-tracker-0b3c.onrender.com/api/v1/',
+  baseURL: 'localhost:5000/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -15,7 +15,7 @@ import { prismaClient } from '../utils/prisma-client.js';
 import { HttpStatus } from '../utils/http-status.js';
 import { $Enums } from '@prisma/client';
 
-const getPeriod = (
+export const getPeriod = (
   period: string = 'monthly'
 ): { startDate: Date; endDate: Date } => {
   let startDate: Date;
@@ -88,22 +88,40 @@ export const createBudget = async (req: Request, res: Response) => {
     }
   }
 
-  await prismaClient.budget.create({
-    data: {
-      userId: +req.user?.id,
-      categoryId: req.body.categoryId,
-      name: req.body.name,
-      amount: req.body.amount,
-      period: req.body.period.toUpperCase(),
-      startDate,
-      endDate,
-    },
-  });
+  await prismaClient.$transaction(
+    async (tx) => {
+      if (!req.user) return;
+      await tx.budget.create({
+        data: {
+          userId: +req.user?.id,
+          categoryId: req.body.categoryId,
+          name: req.body.name,
+          amount: req.body.amount,
+          period: req.body.period.toUpperCase(),
+          startDate,
+          endDate,
+        },
+      });
 
-  res.status(HttpStatus.CREATED).json({
-    success: true,
-    message: 'Budget created successfully',
-  });
+      await tx.notification.create({
+        data: {
+          userId: +req.user?.id,
+          title: 'New Budget Created',
+          message: `A new budget of amount $${req.body.amount} has been created for category ID ${req.body.categoryId}.`,
+          type: 'BUDGET',
+        },
+      });
+
+      return res.status(HttpStatus.CREATED).json({
+        success: true,
+        message: 'Budget created successfully',
+      });
+    },
+    {
+      maxWait: 10000,
+      timeout: 30000,
+    }
+  );
 };
 
 // SECTION: Get all budgets for the current user

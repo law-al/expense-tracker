@@ -32,9 +32,10 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  accounts     Account[]
-  transactions Transaction[]
-  Budget       Budget[]
+  accounts      Account[]
+  transactions  Transaction[]
+  Budget        Budget[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -140,4 +141,34 @@ model Budget {
 
   @@unique([userId, categoryId, startDate])
   @@map("budgets")
+}
+
+enum NotificationType {
+  BUDGET
+  TRANSACTION
+  ACCOUNT
+  SYSTEM
+}
+
+enum NotificationLevel {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model Notification {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  type      NotificationType  @default(SYSTEM)
+  level     NotificationLevel @default(INFO)
+  data      Json?
+  isRead    Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
 }

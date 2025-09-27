@@ -59,6 +59,20 @@ export const register = async (req: Request, res: Response) => {
   });
 
   if (user && !user.isVerified) {
+    await prismaClient.$transaction(async (tx) => {
+      token = jwt.sign({ id: user.id }, JWT_SECRET!);
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          username: req.body.username,
+          email: req.body.email,
+          otp: otpHash,
+          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+          password: hashSync(req.body.password, 12),
+        },
+      });
+    });
+
     await sendEmail(
       req.body.email,
       'Verify your email',
@@ -78,6 +92,7 @@ export const register = async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       message: 'Please verify your email to complete registration',
+      data: { accessToken: token || null },
     });
   }
 

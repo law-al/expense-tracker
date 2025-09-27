@@ -4,11 +4,11 @@ import { prismaClient } from '../utils/prisma-client.js';
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { ChangeUserPasswordSchema } from '../schema/index.js';
 
-export const getMe = async (req: Request, res: Response) => {};
+// export const getMe = async (req: Request, res: Response) => {};
 
-export const updateMe = async (req: Request, res: Response) => {};
+// export const updateMe = async (req: Request, res: Response) => {};
 
-export const deleteMe = async (req: Request, res: Response) => {};
+// export const deleteMe = async (req: Request, res: Response) => {};
 
 export const changePassword = async (req: Request, res: Response) => {
   if (!req.user) return;

@@ -1,7 +1,12 @@
 import type { NextFunction, Request, Response } from 'express';
 import { NotFoundError } from '../exceptions/not-found.js';
 import { prismaClient } from '../utils/prisma-client.js';
-import type { Account, Category, TransactionType } from '@prisma/client';
+import type {
+  Account,
+  Budget,
+  Category,
+  TransactionType,
+} from '@prisma/client';
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { HttpStatus } from '../utils/http-status.js';
 import {
@@ -11,6 +16,7 @@ import {
 import { UnAuthorizedError } from '../exceptions/unauthorized.js';
 import { format, startOfYear, endOfYear } from 'date-fns';
 import type { Transaction } from '../types/index.js';
+import { getPeriod } from './budget.controller.js';
 
 interface AggregrateData {
   categoryId: number | null;
@@ -94,6 +100,42 @@ export const createTransaction = async (
     throw new NotFoundError('Category not found');
   }
 
+  // STEP: Check if budget exists for the category if transaction type is expense
+  let budget: Budget | null = null;
+  if (transactionType.id === 1) {
+    budget = await prismaClient.budget.findFirst({
+      where: {
+        categoryId: category.id,
+        userId: +req.user?.id,
+        period: 'MONTHLY',
+      },
+    });
+  }
+
+  let monthlybudgetExceeded: boolean = false;
+  if (budget) {
+    const expenses = await prismaClient.transaction.aggregate({
+      where: {
+        categoryId: category.id,
+        userId: +req.user?.id,
+        transactionTypeId: 1,
+        date: {
+          gte: getPeriod().startDate,
+          lte: getPeriod().endDate,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const totalExpenses = expenses._sum.amount || 0;
+
+    if (totalExpenses + +req.body.amount > budget.amount) {
+      monthlybudgetExceeded = true;
+    }
+  }
+
   //STEP: Check the trasaction type and update the account balance accordingly
   let newBalance: number;
 
@@ -109,7 +151,7 @@ export const createTransaction = async (
   await prismaClient.$transaction(
     async (tx) => {
       if (!req.user) return;
-      await tx.transaction.create({
+      const transaction = await tx.transaction.create({
         data: {
           userId: +req.user?.id,
           accountId: account.id,
@@ -132,6 +174,40 @@ export const createTransaction = async (
           },
         },
       });
+
+      await tx.notification.create({
+        data: {
+          userId: +req.user?.id,
+          title: 'New Transaction Added',
+          message: `A new ${transactionType.name} transaction of amount ${req.body.amount} has been added to your account ${account.name}.`,
+          type: 'TRANSACTION',
+          data: JSON.stringify({
+            transactionId: transaction.id,
+            transactionAmount: req.body.amount,
+            transactionType: transactionType.name,
+            accountId: account.id,
+            accountName: account.name,
+          }),
+        },
+      });
+
+      if (monthlybudgetExceeded) {
+        await tx.notification.create({
+          data: {
+            userId: +req.user?.id,
+            title: 'Budget Exceeded',
+            message: `Your monthly budget for category ${category.name} has been exceeded.`,
+            type: 'BUDGET',
+            level: 'CRITICAL',
+            data: JSON.stringify({
+              budgetId: budget?.id,
+              budgetAmount: budget?.amount,
+              categoryId: category.id,
+              categoryName: category.name,
+            }),
+          },
+        });
+      }
     },
     {
       maxWait: 5000, // default: 2000
@@ -367,9 +443,9 @@ export const getRecentTransactions = async (req: Request, res: Response) => {
 
 export const getTransactionHistory = async (req: Request, res: Response) => {
   if (!req.user) return;
-  const period = req.query?.period || 2025;
+  const period = req.query?.period || 0;
 
-  const year = new Date(+period, 0, 1);
+  const year = new Date(+period, 0, 1).getFullYear();
 
   const startDate = startOfYear(+year);
   const endDate = endOfYear(+year);
@@ -432,3 +508,9 @@ export const getTransactionHistory = async (req: Request, res: Response) => {
     data: formattedTransaction,
   });
 };
+
+// Run a cron job to auto create monthly budget for all users based on their set budgets
+// This function will be called on the first day of every month at 00:00 AM
+// You can use node-cron or any other cron job library to schedule this function
+// This function will create a new budget for each user based on their set budgets
+// If a budget already exists for the current month, it will not create a new one
