@@ -29,8 +29,8 @@
           {{ fetchErrorMessage }}
         </span>
 
-        <div class="flex flex-col h-full">
-          <div class="overflow-y-scroll scrollbar-hidden space-y-1">
+        <div class="flex flex-col h-full mt-2">
+          <div class="overflow-y-scroll scrollbar-hidden space-y-3">
             <!-- Budget Amount Input -->
             <div
               class="mx-4 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl"

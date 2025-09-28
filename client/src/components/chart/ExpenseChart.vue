@@ -1,7 +1,7 @@
 <template>
   <div style="height: 200px" class="relative">
     <Doughnut :data="chartData" :options="chartOptions" />
-    <div class="absolute inset-0 flex flex-col justify-center items-center -z-10">
+    <div class="absolute inset-0 flex flex-col justify-center items-center z-100">
       <p class="text-center text-sm font-light">Expenses</p>
       <p class="text-center text-lg font-bold">
         {{

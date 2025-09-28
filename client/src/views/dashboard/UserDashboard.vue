@@ -198,24 +198,6 @@
               </div>
               <percent-bar :percentage="budgets?.percentage || 0" />
             </div>
-
-            <div class="w-full overflow-x-scroll scrollbar-hidden">
-              <div class="flex flex-nowrap items-center gap-3 pb-2 cursor-pointer">
-                <div
-                  v-for="item in budgetsByCategory"
-                  :key="item.categoryId"
-                  class="min-w-[150px] px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 shadow-inner flex items-center gap-3"
-                >
-                  <div
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black text-white"
-                    :style="{ backgroundColor: colorToHex(item.category.color || '#000000') }"
-                  >
-                    {{ item.percetage }}%
-                  </div>
-                  <span class="text-white text-base font-semibold">{{ item.category.name }}</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -258,7 +240,6 @@ import type { AccordionItem } from '@nuxt/ui'
 import { onMounted, ref } from 'vue'
 import { useDashboardDataV2 } from '@/composables/fetchDashBoardData'
 import { formatCurrency, formatDate } from '@/utils/formatters'
-import { colorToHex } from '@/utils/colorUtils'
 import { useAccountStore } from '@/stores/account.store'
 import { storeToRefs } from 'pinia'
 import { useTransactionStore } from '@/stores/transaction.store'
@@ -275,7 +256,7 @@ const transactionStore = useTransactionStore()
 const { getRecentTransactions: recentTxns, getExpenseAggregrate: expenseSummary } =
   storeToRefs(transactionStore)
 const budgetStore = useBudgetStore()
-const { getBudgets: budgets, getBudgetsByCategory: budgetsByCategory } = storeToRefs(budgetStore)
+const { getBudgets: budgets } = storeToRefs(budgetStore)
 const {
   isLoading,
   fetchAccountError,

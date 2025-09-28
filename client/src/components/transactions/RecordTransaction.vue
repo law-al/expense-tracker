@@ -96,8 +96,8 @@
         </div>
 
         <!-- Content -->
-        <div class="flex-1 flex flex-col justify-between overflow-y-auto">
-          <div class="space-y-1">
+        <div class="flex-1 flex flex-col justify-between overflow-y-auto mt-2">
+          <div class="space-y-3">
             <!-- Error -->
             <div v-show="displayError" class="mx-4 mt-4">
               <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
@@ -261,7 +261,7 @@
                   <u-icon name="i-mdi-note-text" class="size-4 text-orange-400" />
                 </div>
                 <div>
-                  <span class="text-xs text-gray-500 font-medium">Notes</span>
+                  <span class="text-xs text-gray-500 font-medium">Notes (required)</span>
                   <p class="text-xs text-gray-400">Add additional details</p>
                 </div>
               </div>
