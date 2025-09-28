@@ -468,7 +468,7 @@ export const getTransactionHistory = async (req: Request, res: Response) => {
       account: {
         select: {
           accountType: {
-            select: { name: true },
+            select: { name: true, icon: true },
           },
         },
       },

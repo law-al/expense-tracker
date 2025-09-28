@@ -16,9 +16,9 @@
   >
     <template #main>
       <div
-        class="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/30 animate-scale-in"
+        class="w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/25 animate-scale-in backdrop-blur-sm border border-green-500/20"
       >
-        <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -28,8 +28,8 @@
         </svg>
       </div>
 
-      <h3 class="text-xl font-semibold text-white mb-2">Success!</h3>
-      <p class="text-gray-400 text-sm">
+      <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Success!</h3>
+      <p class="text-gray-400 text-base leading-relaxed">
         {{
           transactionType === 'income'
             ? 'Your income has been added successfully.'
@@ -60,136 +60,245 @@
       header: 'hidden',
       container: '!rounded-none !border-0 !p-0 w-full',
     }"
-    class="!w-full !max-w-full !h-full bg-gradient-to-b from-[#0b0b10] to-[#13131f] text-white !border-0 !ring-0"
+    class="!w-full !max-w-full !h-full bg-gradient-to-br from-[#0a0a12] via-[#0f0f1a] to-[#141427] text-white !border-0 !ring-0 backdrop-blur-xl"
   >
     <template #body>
       <div class="relative h-screen flex flex-col">
         <!-- Header -->
         <div
-          class="w-full h-[10vh] flex items-center justify-between px-5 border-b border-white/10 bg-black/20 backdrop-blur-md"
+          class="w-full h-[10vh] flex items-center justify-between px-6 border-b border-white/10 bg-gradient-to-r from-black/30 via-black/20 to-black/30 backdrop-blur-xl"
         >
-          <h2 class="text-lg font-semibold">
-            {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
-          </h2>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-x"
-            class="hover:bg-white/10 rounded-full"
-            @click="handleClose"
-          />
+          <div class="flex items-center gap-4">
+            <div
+              class="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm border"
+              :class="
+                transactionType === 'income'
+                  ? 'bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500/30'
+                  : 'bg-gradient-to-br from-red-600/20 to-red-500/20 border-red-500/30'
+              "
+            >
+              <u-icon
+                :name="transactionType === 'income' ? 'i-mdi-trending-up' : 'i-mdi-trending-down'"
+                class="size-5"
+                :class="transactionType === 'income' ? 'text-green-400' : 'text-red-400'"
+              />
+            </div>
+            <div>
+              <h2 class="text-xl font-bold tracking-tight">
+                {{ transactionType === 'income' ? 'Add Income' : 'Add Expense' }}
+              </h2>
+              <p class="text-xs text-gray-500">
+                {{ transactionType === 'income' ? 'Record your earnings' : 'Track your spending' }}
+              </p>
+            </div>
+          </div>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="handleClose" />
         </div>
 
         <!-- Content -->
         <div class="flex-1 flex flex-col justify-between overflow-y-auto">
-          <div>
+          <div class="space-y-1">
             <!-- Error -->
-            <p v-show="displayError" class="text-red-500 text-xs italic text-center mt-2">
-              {{ displayError }}
-            </p>
+            <div v-show="displayError" class="mx-4 mt-4">
+              <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
+                <p class="text-red-400 text-sm font-medium text-center">{{ displayError }}</p>
+              </div>
+            </div>
 
             <!-- Amount Input -->
-            <div class="w-full border-b border-white/10 p-6">
-              <span
-                class="text-xs block mb-2 tracking-wide uppercase"
-                :class="transactionType === 'income' ? 'text-green-400' : 'text-red-400'"
-              >
-                {{ transactionType === 'income' ? 'Income' : 'Expenses' }}
-              </span>
-              <currency-input
-                v-model="amount"
-                :options="{
-                  locale: 'en-US',
-                  currency: 'USD',
-                  autoDecimalDigits: true,
-                  useGrouping: true,
-                }"
-                placeholder="$0.00"
-                class="w-full text-5xl h-[100px] bg-transparent font-light text-center focus:outline-none placeholder:text-gray-600"
-                :class="transactionType === 'income' ? 'text-green-400' : 'text-red-400'"
-              />
+            <div
+              class="mx-4 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl"
+            >
+              <div class="text-center">
+                <span
+                  class="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
+                  :class="
+                    transactionType === 'income'
+                      ? 'text-green-400 bg-green-500/10 border-green-500/20'
+                      : 'text-red-400 bg-red-500/10 border-red-500/20'
+                  "
+                >
+                  <u-icon
+                    :name="
+                      transactionType === 'income' ? 'i-mdi-plus-circle' : 'i-mdi-minus-circle'
+                    "
+                    class="size-3"
+                  />
+                  {{ transactionType === 'income' ? 'Income Amount' : 'Expense Amount' }}
+                </span>
+                <currency-input
+                  v-model="amount"
+                  :options="{
+                    locale: 'en-US',
+                    currency: 'USD',
+                    autoDecimalDigits: true,
+                    useGrouping: true,
+                  }"
+                  placeholder="$0.00"
+                  class="w-full text-6xl font-extralight text-center focus:outline-none placeholder:text-gray-700 text-transparent bg-clip-text h-[120px] tracking-tight"
+                  :class="
+                    transactionType === 'income'
+                      ? 'bg-gradient-to-r from-green-400 via-emerald-400 to-green-500'
+                      : 'bg-gradient-to-r from-red-400 via-red-400 to-red-500'
+                  "
+                />
+                <div
+                  class="w-20 h-1 rounded-full mx-auto mt-4"
+                  :class="
+                    transactionType === 'income'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      : 'bg-gradient-to-r from-red-500 to-red-400'
+                  "
+                ></div>
+              </div>
             </div>
 
             <!-- Account -->
-            <div class="flex items-center justify-between w-full p-5 border-b border-white/10">
-              <div>
-                <span class="text-xs text-gray-400">Account</span>
-                <p class="font-medium">{{ selectedAccount?.accountType.name }}</p>
-              </div>
-              <div class="p-2 bg-white/10 border border-white/10 rounded-xl">
-                <u-icon :name="selectedAccount?.accountType.icon || ''" class="size-6" />
+            <div
+              class="mx-4 bg-gradient-to-br from-white/[0.02] to-white/[0.01] backdrop-blur-xl rounded-2xl border border-white/10 p-6"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center"
+                  >
+                    <u-icon name="i-mdi-bank" class="size-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <span class="text-xs text-gray-500 font-medium">Account</span>
+                    <p class="text-sm font-semibold text-white">
+                      {{ selectedAccount?.accountType.name }}
+                    </p>
+                  </div>
+                </div>
+                <div class="p-3 bg-white/5 border border-white/20 rounded-2xl backdrop-blur-sm">
+                  <u-icon
+                    :name="selectedAccount?.accountType.icon || ''"
+                    class="size-6 text-blue-400"
+                  />
+                </div>
               </div>
             </div>
 
             <!-- Category -->
-            <div class="flex items-center justify-between w-full p-5 border-b border-white/10">
-              <div>
-                <span class="text-xs text-gray-400">Category</span>
-                <p class="font-semibold">{{ selectedCategory?.name }}</p>
-              </div>
-              <div
-                class="rounded-full p-2 border"
-                :style="{
-                  backgroundColor: `${colorToHex(selectedCategory?.color as string)}22`,
-                  borderColor: `${colorToHex(selectedCategory?.color as string)}33`,
-                }"
-              >
-                <u-icon
-                  :name="selectedCategory?.icon || ''"
-                  class="size-6"
-                  :style="{ color: colorToHex(selectedCategory?.color as string) }"
-                />
+            <div
+              class="mx-4 bg-gradient-to-br from-white/[0.02] to-white/[0.01] backdrop-blur-xl rounded-2xl border border-white/10 p-6"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl flex items-center justify-center"
+                  >
+                    <u-icon name="i-mdi-shape" class="size-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <span class="text-xs text-gray-500 font-medium">Category</span>
+                    <p class="text-sm font-semibold text-white">{{ selectedCategory?.name }}</p>
+                  </div>
+                </div>
+                <div
+                  class="rounded-2xl p-3 border backdrop-blur-sm"
+                  :style="{
+                    backgroundColor: `${colorToHex(selectedCategory?.color as string)}15`,
+                    borderColor: `${colorToHex(selectedCategory?.color as string)}25`,
+                  }"
+                >
+                  <u-icon
+                    :name="selectedCategory?.icon || ''"
+                    class="size-6"
+                    :style="{ color: colorToHex(selectedCategory?.color as string) }"
+                  />
+                </div>
               </div>
             </div>
 
             <!-- Sub Categories -->
             <div
               v-if="categoryStore.subCategories.length > 0 && transactionType === 'expense'"
-              class="flex items-center gap-3 overflow-x-auto p-5 border-b border-white/10"
+              class="mx-4 bg-gradient-to-br from-white/[0.02] to-white/[0.01] backdrop-blur-xl rounded-2xl border border-white/10 p-6"
             >
-              <div v-for="subCategory in categoryStore.subCategories" :key="subCategory.id">
+              <div class="flex items-center gap-3 mb-4">
                 <div
-                  @click="handleSelectSubCategory(subCategory)"
-                  class="px-3 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition"
-                  :class="
-                    selectedSubCategory?.id === subCategory.id
-                      ? 'bg-white/10 border border-white/20 shadow-sm'
-                      : 'border border-white/10 hover:bg-white/5'
-                  "
+                  class="w-8 h-8 bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 rounded-xl flex items-center justify-center"
                 >
-                  <u-icon
-                    :name="subCategory.icon || ''"
-                    class="size-5"
-                    :style="{ color: colorToHex(subCategory?.color as string) }"
-                  />
-                  <span class="text-xs">{{ subCategory.name }}</span>
+                  <u-icon name="i-mdi-format-list-bulleted" class="size-4 text-indigo-400" />
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 font-medium">Sub Categories</span>
+                  <p class="text-xs text-gray-400">Choose a specific type</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 overflow-x-auto pb-2">
+                <div v-for="subCategory in categoryStore.subCategories" :key="subCategory.id">
+                  <div
+                    @click="handleSelectSubCategory(subCategory)"
+                    class="px-4 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 whitespace-nowrap backdrop-blur-sm"
+                    :class="
+                      selectedSubCategory?.id === subCategory.id
+                        ? 'bg-white/15 border border-white/30 shadow-lg scale-105'
+                        : 'border border-white/20 hover:bg-white/10 hover:border-white/30'
+                    "
+                  >
+                    <u-icon
+                      :name="subCategory.icon || ''"
+                      class="size-5"
+                      :style="{ color: colorToHex(subCategory?.color as string) }"
+                    />
+                    <span class="text-sm font-medium">{{ subCategory.name }}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Notes -->
-            <div class="w-full p-5">
-              <label for="notes" class="text-xs text-gray-400">Notes</label>
+            <div
+              class="mx-4 bg-gradient-to-br from-white/[0.02] to-white/[0.01] backdrop-blur-xl rounded-2xl border border-white/10 p-6"
+            >
+              <div class="flex items-center gap-3 mb-4">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl flex items-center justify-center"
+                >
+                  <u-icon name="i-mdi-note-text" class="size-4 text-orange-400" />
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 font-medium">Notes</span>
+                  <p class="text-xs text-gray-400">Add additional details</p>
+                </div>
+              </div>
               <textarea
                 id="notes"
                 rows="3"
                 v-model="description"
-                placeholder="Add a note (optional)"
-                class="w-full mt-2 p-3 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder="Add a note about this transaction..."
+                class="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none transition-all duration-200 backdrop-blur-sm"
               ></textarea>
             </div>
           </div>
 
           <!-- Submit -->
-          <div class="p-5">
+          <div class="p-6 pt-8">
             <u-button
               @click="handleAddExpense"
               :disabled="!amount || amount <= 0 || isSubmitting"
               :loading="isLoading || isSubmitting"
               size="xl"
-              class="justify-center w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/40 font-medium text-white shadow-md shadow-indigo-500/30"
-              :label="transactionType === 'income' ? 'Add Income' : 'Add Expense'"
-            />
+              class="group justify-center w-full py-5 rounded-2xl font-semibold text-white shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border backdrop-blur-sm"
+              :class="
+                transactionType === 'income'
+                  ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 hover:from-green-700 hover:via-emerald-700 hover:to-green-700 disabled:from-gray-600 disabled:via-gray-700 disabled:to-gray-600 shadow-green-500/25 hover:shadow-green-500/40 border-green-500/30'
+                  : 'bg-gradient-to-r from-red-600 via-red-600 to-red-500 hover:from-red-700 hover:via-red-700 hover:to-red-600 disabled:from-gray-600 disabled:via-gray-700 disabled:to-gray-600 shadow-red-500/25 hover:shadow-red-500/40 border-red-500/30'
+              "
+            >
+              <div class="flex items-center gap-3">
+                <u-icon
+                  :name="transactionType === 'income' ? 'i-mdi-plus-circle' : 'i-mdi-minus-circle'"
+                  class="size-5 group-hover:rotate-12 transition-transform"
+                />
+                <span class="text-base">{{
+                  transactionType === 'income' ? 'Add Income' : 'Add Expense'
+                }}</span>
+              </div>
+            </u-button>
           </div>
         </div>
       </div>
@@ -321,4 +430,18 @@ watch(
 )
 </script>
 
-<style scoped></style>
+<style scoped>
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+</style>

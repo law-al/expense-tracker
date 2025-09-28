@@ -14,10 +14,10 @@
         <div class="flex items-center gap-3">
           <u-avatar src="https://github.com/benjamincanac.png" size="lg" />
           <div>
-            <h2 class="text-lg font-semibold text-white">
+            <h2 class="text-xl font-bold text-white tracking-tight">
               Welcome back, {{ getAccountOverview.username || 'User!' }}
             </h2>
-            <p class="text-gray-400 text-sm">Here’s a summary of your finances</p>
+            <p class="text-gray-300 text-base font-medium">Here's a summary of your finances</p>
           </div>
         </div>
 
@@ -27,7 +27,7 @@
             size="3xl"
             color="info"
             :ui="{
-              base: 'bg-white text-gray-900',
+              base: 'bg-white text-gray-900 font-bold',
               root: '',
             }"
           >
@@ -51,13 +51,13 @@
 
       <div class="">
         <!-- Total Balance in the Account -->
-        <div class="px-4 py-2 rounded-lg mb-4 glass-card shadow-2xl">
+        <div class="px-6 py-4 rounded-lg mb-4 premium-card shadow-2xl">
           <UAccordion :items="items" class="h-full">
             <template #default="{ item }">
-              <span class="font-extralight text-cool-gray text-xs">
+              <span class="font-medium text-gray-300 text-sm uppercase tracking-wider">
                 {{ item.label }}
               </span>
-              <p class="text-2xl font-semibold text-white mt-1">
+              <p class="text-3xl font-black text-white mt-2 tracking-tight">
                 {{ formatCurrency(getAccountOverview.totalBalance, 'USD') }}
               </p>
             </template>
@@ -65,24 +65,29 @@
             <!-- Accounts -->
             <template #content>
               <!-- error state -->
-              <div v-if="!!fetchAccountError && !isLoading" class="text-red-500 text-sm">
+              <div
+                v-if="!!fetchAccountError && !isLoading"
+                class="text-red-400 text-base font-medium bg-red-900/20 p-3 rounded-lg border border-red-500/30"
+              >
                 Error loading account data: {{ fetchAccountError }}
               </div>
 
               <!-- Break down details for account -->
-              <div v-else class="flex flex-col gap-2 my-4">
+              <div v-else class="flex flex-col gap-3 my-5">
                 <div
                   v-for="account in getAccountOverview.accounts"
                   :key="account.name"
-                  class="flex items-center gap-4 text-white"
+                  class="flex items-center gap-4 text-white p-3 rounded-lg bg-gray-800/30 border border-gray-700/50"
                 >
                   <u-icon
                     :name="account.accountType.icon ?? 'i-ri-bank-line'"
-                    class="size-6 text-white"
+                    class="size-7 text-blue-400"
                   />
                   <div class="">
-                    <span class="text-xs font-extralight">{{ account.accountType.name }}</span>
-                    <p class="text-sm font-semibold text-white">
+                    <span class="text-sm font-medium text-gray-300 uppercase tracking-wide">{{
+                      account.accountType.name
+                    }}</span>
+                    <p class="text-lg font-bold text-white mt-1">
                       {{ formatCurrency(account.currentBalance || 0, account.currency) }}
                     </p>
                   </div>
@@ -98,46 +103,52 @@
         <!-- Error Messages -->
         <div
           v-if="!!fetchTransactionError"
-          class="mb-2 glass-card px-4 py-4 rounded-lg shadow-2xl flex items-center justify-center"
+          class="mb-2 premium-card px-6 py-4 rounded-lg shadow-2xl flex items-center justify-center"
         >
-          <p class="text-sm italic text-center text-red-500">
+          <p
+            class="text-base font-medium text-center text-red-400 bg-red-900/20 p-3 rounded border border-red-500/30"
+          >
             Budget Error: {{ fetchTransactionError }}
           </p>
         </div>
 
         <!-- Recent transaction for account-->
-        <div v-else class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl text-soft-white">
-          <header class="mb-4">
-            <p class="font-semibold text-lg">Recent Transactions</p>
-            <p class="text-xs text-cool-gray">Your latest transactions</p>
+        <div v-else class="px-6 py-5 rounded-lg mb-4 premium-card shadow-2xl text-soft-white">
+          <header class="mb-5">
+            <p class="font-bold text-xl text-white tracking-tight">Recent Transactions</p>
+            <p class="text-sm text-gray-300 font-medium mt-1">Your latest transactions</p>
           </header>
 
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-3">
             <!-- Transaction item -->
             <div v-if="recentTxns.length === 0" class="">
-              <p class="text-cool-gray text-sm">No recent transactions available.</p>
+              <p class="text-gray-400 text-base font-medium text-center py-6">
+                No recent transactions available.
+              </p>
             </div>
             <div
               v-else
               v-for="(transaction, index) in recentTxns"
               :key="index"
-              class="flex items-center justify-between px-4 py-3 rounded-lg odd:bg-gray-900/40 even:bg-gray-800/40"
+              class="flex items-center justify-between px-5 py-4 rounded-lg odd:bg-gray-900/40 even:bg-gray-800/40 border border-gray-700/30"
             >
               <div class="flex items-center gap-4">
                 <u-icon
                   :name="getTransactionLogo(transaction.transactionType.name)"
-                  class="size-6"
+                  class="size-7"
                   :class="getTransactionAmountColor(transaction.transactionType.name)"
                 />
                 <div class="flex flex-col">
-                  <p class="text-sm font-semibold text-white">
+                  <p class="text-base font-bold text-white">
                     {{ transaction.description || 'Transfer' }}
                   </p>
-                  <span class="text-xs text-cool-gray">{{ formatDate(transaction.date) }}</span>
+                  <span class="text-sm text-gray-300 font-medium">{{
+                    formatDate(transaction.date)
+                  }}</span>
                 </div>
               </div>
               <p
-                class="text-sm font-semibold"
+                class="text-base font-bold tracking-tight"
                 :class="getTransactionAmountColor(transaction.transactionType.name)"
               >
                 {{ formatCurrency(transaction.amount, transaction.account.currency) }}
@@ -152,48 +163,56 @@
         <!-- Error Messages -->
         <div
           v-if="fetchBudgetError"
-          class="mb-2 glass-card px-4 py-4 rounded-lg shadow-2xl flex items-center justify-center"
+          class="mb-2 premium-card px-6 py-4 rounded-lg shadow-2xl flex items-center justify-center"
         >
-          <p class="text-sm italic text-center text-red-500">
+          <p
+            class="text-base font-medium text-center text-red-400 bg-red-900/20 p-3 rounded border border-red-500/30"
+          >
             Budget Error: {{ fetchBudgetError }}
           </p>
         </div>
         <!-- Budget  -->
-        <div v-else class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl">
-          <header class="mb-4">
-            <p class="font-semibold text-lg">Budgets</p>
-            <p class="text-xs text-cool-gray">Your budget overview</p>
+        <div v-else class="px-6 py-5 rounded-lg mb-4 premium-card shadow-2xl">
+          <header class="mb-5">
+            <p class="font-bold text-xl text-white tracking-tight">Budgets</p>
+            <p class="text-sm text-gray-300 font-medium mt-1">Your budget overview</p>
           </header>
 
           <div class="flex flex-col gap-4" style="color: #94a3b8">
             <div
-              class="flex flex-col justify-between px-4 py-3 rounded-lg"
+              class="flex flex-col justify-between px-5 py-4 rounded-lg border border-gray-600/50"
               style="background-color: #1a1a2e"
             >
-              <div class="flex flex-col mb-2">
-                <p class="text-sm font-semibold text-white">Monthly Budget</p>
-                <span class="text-xs text-cool-gray"
-                  >Spent: <span>{{ formatCurrency(budgets?.totalExpenses || 0) }}</span> of
-                  <span>{{ formatCurrency(budgets?.totalBudgets || 0) }}</span>
+              <div class="flex flex-col mb-3">
+                <p class="text-lg font-bold text-white">Monthly Budget</p>
+                <span class="text-sm text-gray-300 font-medium mt-1"
+                  >Spent:
+                  <span class="font-bold text-red-400">{{
+                    formatCurrency(budgets?.totalExpenses || 0)
+                  }}</span>
+                  of
+                  <span class="font-bold text-green-400">{{
+                    formatCurrency(budgets?.totalBudgets || 0)
+                  }}</span>
                 </span>
               </div>
               <percent-bar :percentage="budgets?.percentage || 0" />
             </div>
 
             <div class="w-full overflow-x-scroll scrollbar-hidden">
-              <div class="flex flex-nowrap items-center gap-2 pb-2 cursor-pointer">
+              <div class="flex flex-nowrap items-center gap-3 pb-2 cursor-pointer">
                 <div
                   v-for="item in budgetsByCategory"
                   :key="item.categoryId"
-                  class="min-w-[140px] px-3 py-2 rounded-xl bg-gray-800/50 border border-gray-700 shadow-inner flex items-center gap-3"
+                  class="min-w-[150px] px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 shadow-inner flex items-center gap-3"
                 >
                   <div
-                    class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black text-white"
                     :style="{ backgroundColor: colorToHex(item.category.color || '#000000') }"
                   >
                     {{ item.percetage }}%
                   </div>
-                  <span class="text-white text-sm font-medium">{{ item.category.name }}</span>
+                  <span class="text-white text-base font-semibold">{{ item.category.name }}</span>
                 </div>
               </div>
             </div>
@@ -206,17 +225,19 @@
         <!-- Error Messages -->
         <div
           v-if="fetchExpenseError"
-          class="mb-2 glass-card px-4 py-4 rounded-lg shadow-2xl flex items-center justify-center"
+          class="mb-2 premium-card px-6 py-4 rounded-lg shadow-2xl flex items-center justify-center"
         >
-          <p class="text-sm italic text-center text-red-500">
+          <p
+            class="text-base font-medium text-center text-red-400 bg-red-900/20 p-3 rounded border border-red-500/30"
+          >
             Expense Error: {{ fetchExpenseError }}
           </p>
         </div>
-        <!-- Expunse chart -->
-        <div v-else class="px-4 py-4 rounded-lg mb-4 glass-card shadow-2xl">
-          <header class="mb-4">
-            <p class="font-semibold text-lg">Expense Chart</p>
-            <p class="text-xs text-cool-gray">Your expense trends</p>
+        <!-- Expense chart -->
+        <div v-else class="px-6 py-5 rounded-lg mb-4 premium-card shadow-2xl">
+          <header class="mb-5">
+            <p class="font-bold text-xl text-white tracking-tight">Expense Chart</p>
+            <p class="text-sm text-gray-300 font-medium mt-1">Your expense trends</p>
           </header>
 
           <ExpenseChart

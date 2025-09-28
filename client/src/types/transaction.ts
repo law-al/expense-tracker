@@ -13,7 +13,7 @@ type TransactionWithDetails = Pick<Transaction, 'date' | 'description' | 'amount
 }
 
 type Transaction = {
-  id: string
+  id: string | number
   date: Date
   description: string
   amount: number
@@ -32,6 +32,7 @@ type Transaction = {
     accountTypeId: string
     accountType: {
       name: string
+      icon: string | null
     }
     userId: string
     createdAt: Date
@@ -51,7 +52,7 @@ type Transaction = {
   }
 
   transactionType: {
-    id: string
+    id: string | number
     name: string
     createdAt: Date
     updatedAt: Date

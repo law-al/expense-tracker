@@ -11,7 +11,7 @@
     :ui="{
       content:
         'bg-gradient-to-b from-[#0a0a0f] to-[#111122] text-white z-[1000] w-[100vw] shadow-xl',
-      title: 'text-white font-semibold',
+      title: 'text-white font-semibold text-2xl',
       body: 'text-white',
       close: 'bg-white/10 text-white hover:!bg-white hover:text-gray-900 transition cursor-pointer',
       overlay: 'bg-black/50 backdrop-blur-sm z-[999]',

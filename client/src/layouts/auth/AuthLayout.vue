@@ -1,5 +1,5 @@
 <template>
-  <div class="h-[100vh] max-w-[639px] p-4 bg-image flex items-center justify-center">
+  <div class="h-[100dvh] max-w-[639px] p-4 bg-image flex items-center justify-center">
     <slot></slot>
   </div>
 </template>
