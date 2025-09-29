@@ -1,4 +1,28 @@
 <template>
+  <loading-modal :is-submitting="isSubmitting" />
+
+  <success-modal :success-modal="showSuccessModal" @close-success-modal="showSuccessModal = false">
+    <template #main>
+      <div
+        class="w-16 h-16 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/25 animate-scale-in backdrop-blur-sm border border-indigo-500/20"
+      >
+        <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          ></path>
+        </svg>
+      </div>
+
+      <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Account Created!</h3>
+      <p class="text-gray-400 text-base leading-relaxed">
+        Your new account is now active and ready to use.
+      </p>
+    </template>
+  </success-modal>
+
   <u-slideover
     title="Add Account"
     :close="{ onClick: handleClose }"
@@ -6,59 +30,56 @@
     :transition="false"
     v-model:open="openAccountForm"
     :ui="{
-      content: 'bg-gray-950',
-      title: 'text-white',
-      body: 'text-white',
+      content: 'bg-gradient-to-br from-[#0a0a12] via-[#0f0f1a] to-[#141427] backdrop-blur-xl',
+      title: 'text-white font-bold text-xl tracking-tight',
+      body: 'text-white !h-[90vh] overflow-hidden scrollbar-hide',
       close: 'bg-white text-gray-800 hover:!bg-white/80 cursor-pointer',
     }"
   >
     <template #body>
-      <loading-modal :is-submitting="isSubmitting" />
-
-      <success-modal
-        :success-modal="showSuccessModal"
-        @close-success-modal="showSuccessModal = false"
-      >
-        <template #main>
-          <div
-            class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <svg
-              class="w-6 h-6 text-indigo-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <div class="h-[100%] flex flex-col">
+        <!-- Header Section -->
+        <div class="h-[11%]">
+          <div class="flex items-center gap-4 mb-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-2xl flex items-center justify-center"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              ></path>
-            </svg>
+              <u-icon name="i-mdi-bank-plus" class="size-6 text-green-400" />
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-white">Create New Account</h2>
+              <p class="text-gray-400 text-sm">Set up your financial account</p>
+            </div>
           </div>
-
-          <h3 class="text-lg font-semibold text-indigo-200 mb-2">Account Created</h3>
-          <p class="text-gray-300 text-sm mb-6">Your account is now active and ready to use.</p>
-        </template>
-      </success-modal>
-
-      <div class="h-full">
-        <!-- Fetch Error -->
-        <div v-if="fetchErrorMessage" class="mb-4">
-          <p class="text-sm italic text-center text-red-500">{{ fetchErrorMessage }}</p>
         </div>
+
+        <!-- Error Display -->
+        <div v-if="fetchErrorMessage" class="mb-6">
+          <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
+            <p class="text-red-400 text-sm font-medium text-center">{{ fetchErrorMessage }}</p>
+          </div>
+        </div>
+
         <!-- Form -->
-        <u-form :schema="schema" :state="state" @submit="onSubmit" class="flex flex-col h-full">
-          <div class="space-y-6 flex-1">
-            <!-- Account name -->
-            <div class="space-y-2">
+        <u-form :schema="schema" :state="state" @submit="onSubmit" class="flex flex-col h-[89%]">
+          <div class="space-y-6 flex-1 overflow-auto scrollbar-hide">
+            <!-- Account Name -->
+            <div class="premium-form-field">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center"
+                >
+                  <u-icon name="i-mdi-account" class="size-4 text-blue-400" />
+                </div>
+                <div>
+                  <span class="text-white text-sm font-semibold">Account Name</span>
+                  <p class="text-gray-500 text-xs">Give your account a memorable name</p>
+                </div>
+              </div>
               <u-form-field
-                label="Account Name"
                 name="accountName"
                 :ui="{
-                  error: 'text-xs text-red-500 mt-1',
-                  label: 'text-white text-sm mb-1',
+                  error: 'text-xs text-red-400 mt-2 font-medium',
                 }"
               >
                 <u-input
@@ -67,24 +88,33 @@
                   @input="fetchErrorMessage = null"
                   v-model="state.accountName"
                   :highlight="false"
-                  placeholder="Enter account name"
-                  trailing-icon="i-solar-pen-2-linear"
+                  placeholder="e.g., Main Checking, Savings Account"
+                  trailing-icon="i-mdi-pencil"
                   :ui="{
-                    base: 'w-full !bg-gray-950 text-white px-3 py-3 ring-1 ring-gray-700 !rounded-sm focus:outline-none focus-visible:outline-none focus:ring-1 focus-visible:ring-1 focus-visible:ring-indigo-600',
+                    base: 'w-full bg-white/5 border border-white/20 text-white px-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 backdrop-blur-sm placeholder:text-gray-500',
                   }"
                   class="w-full"
                 />
               </u-form-field>
             </div>
 
-            <!-- Account Starting Amount -->
-            <div class="space-y-2">
+            <!-- Opening Balance -->
+            <div class="premium-form-field">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-xl flex items-center justify-center"
+                >
+                  <u-icon name="i-mdi-cash" class="size-4 text-green-400" />
+                </div>
+                <div>
+                  <span class="text-white text-sm font-semibold">Opening Balance</span>
+                  <p class="text-gray-500 text-xs">Starting amount in this account</p>
+                </div>
+              </div>
               <u-form-field
                 name="amount"
-                label="Opening Balance"
                 :ui="{
-                  error: 'text-xs text-red-500 mt-1',
-                  label: 'text-white text-sm mb-1',
+                  error: 'text-xs text-red-400 mt-2 font-medium',
                 }"
               >
                 <div class="relative">
@@ -94,10 +124,10 @@
                     @input="fetchErrorMessage = null"
                     :highlight="false"
                     v-model="state.openingBalance"
-                    trailing-icon="i-solar-pen-2-linear"
+                    trailing-icon="i-mdi-currency-usd"
                     placeholder="0.00"
                     :ui="{
-                      base: 'w-full px-3 py-3 pr-12 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus-visible:ring-1 focus-visible:ring-indigo-600 bg-gray-950 text-white placeholder:text-gray-400 text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] transition-all duration-200',
+                      base: 'w-full px-4 py-4 bg-white/5 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 text-white placeholder:text-gray-500 text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] transition-all duration-200 backdrop-blur-sm text-lg font-semibold',
                     }"
                     class="w-full"
                   />
@@ -105,14 +135,23 @@
               </u-form-field>
             </div>
 
-            <!-- Account Currency -->
-            <div class="space-y-2">
+            <!-- Currency Selection -->
+            <div class="premium-form-field">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl flex items-center justify-center"
+                >
+                  <u-icon name="i-mdi-currency-usd" class="size-4 text-purple-400" />
+                </div>
+                <div>
+                  <span class="text-white text-sm font-semibold">Currency</span>
+                  <p class="text-gray-500 text-xs">Choose your account currency</p>
+                </div>
+              </div>
               <u-form-field
                 name="currency"
-                label="Select Currency"
                 :ui="{
-                  error: 'text-xs text-red-500 mt-1',
-                  label: 'text-white text-sm mb-1',
+                  error: 'text-xs text-red-400 mt-2 font-medium',
                 }"
               >
                 <USelect
@@ -120,35 +159,67 @@
                   @input="fetchErrorMessage = null"
                   :items="currencyOptions"
                   :ui="{
-                    base: 'w-full px-3 py-3 ring-1 ring-gray-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-gray-950 text-white transition-all duration-200 focus-visible:ring-1 focus-visible:ring-indigo-600',
-                    viewport: 'bg-gray-800 text-white',
-                    item: 'text-sm text-white hover:bg-gray-200',
-                    value: 'text-sm text-white',
+                    base: 'w-full px-4 py-4 bg-white/5 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 text-white transition-all duration-200 backdrop-blur-sm',
+                    viewport:
+                      'bg-gray-900/95 backdrop-blur-xl text-white rounded-xl border border-white/20',
+                    item: 'text-white hover:bg-white/10 px-4 py-3 transition-colors rounded-lg mx-2 my-1',
+                    value: 'text-white font-medium',
                   }"
                 />
               </u-form-field>
             </div>
 
-            <!-- Account Type -->
-            <div v-if="selectedAccountType" class="space-y-2">
-              <span class="text-sm font-medium text-white mb-1 block">Account Type</span>
-              <div
-                class="flex items-center justify-between px-3 py-3 ring-1 ring-gray-700 rounded-sm bg-gray-950"
-              >
-                <span class="text-white">{{ selectedAccountType.name }}</span>
-                <u-icon :name="selectedAccountType.icon || ''" class="size-6 text-indigo-400" />
+            <!-- Account Type Display -->
+            <div v-if="selectedAccountType" class="premium-form-field">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl flex items-center justify-center"
+                >
+                  <u-icon name="i-mdi-shape" class="size-4 text-orange-400" />
+                </div>
+                <div>
+                  <span class="text-white text-sm font-semibold">Account Type</span>
+                  <p class="text-gray-500 text-xs">Selected account category</p>
+                </div>
+              </div>
+              <div class="p-4 bg-white/5 border border-white/20 rounded-2xl backdrop-blur-sm">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 rounded-xl flex items-center justify-center"
+                    >
+                      <u-icon
+                        :name="selectedAccountType.icon || 'i-mdi-bank'"
+                        class="size-5 text-indigo-400"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-white font-semibold">{{ selectedAccountType.name }}</p>
+                      <p class="text-gray-400 text-xs">Account category</p>
+                    </div>
+                  </div>
+                  <div class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                    <span class="text-indigo-400 text-xs font-medium">Selected</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Submit Button -->
-          <div class="pt-6 mt-6 border-t border-gray-700">
+          <div class="border-t border-white/10 mt-4">
             <u-button
               size="lg"
               type="submit"
-              class="w-full justify-center rounded-sm py-3 text-white font-medium bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
+              class="group w-full justify-center rounded-2xl py-5 text-white font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-700 focus:ring-2 focus:ring-indigo-500/50 shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-indigo-500/30 backdrop-blur-sm"
             >
-              Create Account
+              <div class="flex items-center gap-3">
+                <u-icon
+                  name="i-mdi-plus-circle"
+                  class="size-5 group-hover:rotate-12 transition-transform"
+                />
+                <span class="text-base">Create Account</span>
+              </div>
             </u-button>
           </div>
         </u-form>
@@ -254,4 +325,38 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.premium-form-field {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.premium-form-field:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+</style>

@@ -48,7 +48,7 @@
           <div
             v-for="transaction in getTransactionHistory"
             :key="transaction.date"
-            class="bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
+            class="bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-lg border border-white/10 shadow-2xl overflow-hidden"
           >
             <!-- Date header -->
             <div

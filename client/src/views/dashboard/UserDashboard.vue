@@ -15,9 +15,9 @@
           <u-avatar src="https://github.com/benjamincanac.png" size="lg" />
           <div>
             <h2 class="text-xl font-bold text-white tracking-tight">
-              Welcome back, {{ getAccountOverview.username || 'User!' }}
+              Welcome, {{ getAccountOverview.username || 'User!' }}
             </h2>
-            <p class="text-gray-300 text-base font-medium">Here's a summary of your finances</p>
+            <p class="text-gray-300 text-sm font-medium">Here's a summary of your finances</p>
           </div>
         </div>
 
@@ -35,6 +35,7 @@
               icon="i-mingcute-notification-line"
               @click="handleNotiClick"
               color="error"
+              size="xl"
               variant="outline"
               :ui="{
                 base: 'text-white ring-white cursor-pointer',

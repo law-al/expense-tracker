@@ -79,7 +79,7 @@ const chartData = computed<ChartData<'doughnut'>>(() => {
           'rgb(22, 160, 133)',
           'rgb(211, 84, 0)',
         ],
-        offset: 4,
+        offset: 10,
         borderColor: '#1F2937',
         borderWidth: 4,
         hoverOffset: 5,
@@ -94,7 +94,7 @@ ChartJS.register(Title, Tooltip, Legend, ArcElement)
 const chartOptions = ref<ChartOptions<'doughnut'>>({
   responsive: true,
   maintainAspectRatio: false,
-  cutout: '80%',
+  cutout: '70%',
   plugins: {
     legend: {
       display: false,

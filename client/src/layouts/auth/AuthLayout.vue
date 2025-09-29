@@ -22,5 +22,3 @@
   background-repeat: no-repeat;
 }
 </style>
-<!-- This will only apply to screens smaller than sm breakpoint -->
-<!-- This will work for mobile without prefixes -->

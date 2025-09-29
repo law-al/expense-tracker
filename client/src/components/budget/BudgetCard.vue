@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full budget-card p-6 rounded-2xl">
+  <div class="w-full budget-card p-6 rounded-lg">
     <div class="flex items-center justify-between mb-6">
       <div
         class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold tracking-wide backdrop-blur-sm border"

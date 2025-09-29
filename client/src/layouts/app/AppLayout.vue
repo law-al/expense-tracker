@@ -1,56 +1,61 @@
 <template>
   <div class="h-[100dvh] max-w-[639px] bg-gray-950 flex flex-col">
-    <!-- Main content area that grows to fill available space -->
     <div class="flex-1 p-4 overflow-auto scrollbar-hidden">
       <slot></slot>
     </div>
 
-    <!-- Fixed footer at bottom -->
-    <footer class="w-full max-w-[639px] bg-image p-4 flex-shrink-0">
-      <div class="w-full h-[50px] flex items-center justify-around text-white">
+    <!-- Fixed footer -->
+    <footer
+      class="w-full max-w-[639px] h-[100px] bg-gradient-to-t from-[#0f172a] to-[#1e293b]/90 backdrop-blur-md border-t border-gray-700/30 p-4 flex-shrink-0 shadow-lg"
+    >
+      <div class="w-full h-[80px] flex items-center justify-around text-gray-400">
         <!-- Home -->
         <router-link
           to="/dashboard"
-          active-class="text-indigo-700"
-          class="flex flex-col items-center justify-center gap-1"
+          active-class="text-indigo-400 drop-shadow-[0_0_6px_rgba(99,102,241,0.7)]"
+          class="flex flex-col items-center justify-center gap-1 transition-colors"
         >
-          <u-icon name="i-fluent-home-24-regular" class="size-6" />
-          <p class="text-xs">Home</p>
+          <u-icon name="i-fluent-home-24-regular" class="size-7" />
+          <p class="text-[11px] font-medium tracking-wide">Home</p>
         </router-link>
+
         <!-- Records -->
         <router-link
           to="/records"
-          active-class="text-indigo-700"
-          class="flex flex-col items-center justify-center gap-1"
+          active-class="text-indigo-400 drop-shadow-[0_0_6px_rgba(99,102,241,0.7)]"
+          class="flex flex-col items-center justify-center gap-1 transition-colors"
         >
-          <u-icon name="i-solar-book-outline" class="size-6" />
-          <p class="text-xs">Records</p>
+          <u-icon name="i-solar-book-outline" class="size-7" />
+          <p class="text-[11px] font-medium tracking-wide">Records</p>
         </router-link>
+
         <!-- Add Transaction -->
-        <div class="">
+        <div>
           <div
             @click="openTransactionModal = true"
-            class="w-[45px] h-[45px] rounded-full text-white bg-indigo-700 flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-800"
+            class="w-[64px] h-[64px] -mt-6 rounded-full bg-indigo-600 text-white flex items-center justify-center cursor-pointer shadow-xl transition-transform hover:scale-110"
           >
-            <u-icon name="i-mynaui-plus" class="size-8" />
+            <u-icon name="i-mynaui-plus" class="size-9" />
           </div>
         </div>
+
         <!-- Budgets -->
         <router-link
           to="/budget"
-          active-class="text-indigo-700"
-          class="flex flex-col items-center justify-center gap-1"
+          active-class="text-indigo-400 drop-shadow-[0_0_6px_rgba(99,102,241,0.7)]"
+          class="flex flex-col items-center justify-center gap-1 transition-colors"
         >
-          <u-icon name="i-ri-currency-fill" class="size-6" />
-          <p class="text-xs">Budgets</p>
+          <u-icon name="i-ri-currency-fill" class="size-7" />
+          <p class="text-[11px] font-medium tracking-wide">Budgets</p>
         </router-link>
-        <!-- Accounts -->
+
+        <!-- Menu -->
         <div
           @click="openMenuModal = true"
-          class="flex flex-col items-center justify-center gap-1 cursor-pointer"
+          class="flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors"
         >
-          <u-icon name="i-ri-menu-3-line" class="size-6" />
-          <p class="text-xs">Menu</p>
+          <u-icon name="i-ri-menu-3-line" class="size-7" />
+          <p class="text-[11px] font-medium tracking-wide">Menu</p>
         </div>
       </div>
     </footer>

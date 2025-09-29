@@ -48,13 +48,13 @@
   >
     <template #title>
       <div class="flex items-center gap-3">
-        <span class="text-xl font-bold text-white tracking-tight">Menu</span>
+        <span class="text-2xl font-bold text-white tracking-tight">Menu</span>
       </div>
     </template>
 
     <template #main>
-      <div class="flex flex-col justify-between gap-6 h-[90vh]">
-        <div class="h-full flex flex-col justify-start space-y-2">
+      <div class="flex flex-col h-[90dvh]">
+        <div class="h-[80%] flex flex-col justify-start space-y-2 overflow-auto scrollbar-hide">
           <!-- Settings -->
           <router-link
             to="/settings"
@@ -123,7 +123,7 @@
         </div>
 
         <!-- Logout Button -->
-        <div class="p-4">
+        <div class="p-4 mt-auto">
           <u-button
             variant="solid"
             size="xl"

@@ -1,24 +1,87 @@
 <template>
   <loading-modal :is-submitting="isLoading" />
 
-  <div class="h-[100vh] max-w-[639px] overflow-scroll bg-image">
-    <header class="w-full py-8">
-      <p class="text-center font-semibold text-xl">Create Account</p>
+  <div
+    class="h-screen max-w-[639px] bg-gradient-to-br from-[#0a0a12] via-[#0f0f1a] to-[#141427] backdrop-blur-xl"
+  >
+    <!-- Header -->
+    <header class="w-full py-8 px-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-12 h-12 bg-gradient-to-br from-indigo-600/20 to-purple-700/20 rounded-2xl flex items-center justify-center shadow-lg"
+        >
+          <u-icon name="i-mdi-bank-plus" class="size-6 text-indigo-400" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">Create Account</h1>
+          <p class="text-gray-400 text-sm">Choose your account type</p>
+        </div>
+      </div>
     </header>
 
-    <!-- Account section -->
-    <div class="">
-      <div class="flex flex-col">
+    <!-- Account Types List -->
+    <div class="px-4 space-y-3">
+      <div
+        v-for="type in accountTypes"
+        :key="type.name"
+        @click="setOpen(type)"
+        class="premium-account-type group flex items-center gap-4 p-5 cursor-pointer rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <!-- Account Type Icon -->
         <div
-          v-for="type in accountTypes"
-          :key="type.name"
-          @click="setOpen(type)"
-          class="flex items-center text-sm gap-2 px-4 py-4 border border-gray-700 cursor-pointer"
+          class="w-14 h-14 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm group-hover:border-white/30 transition-all duration-200 shadow-lg"
         >
-          <u-icon :name="type?.icon || ''" class="size-6" />
-          <div class="flex items-center justify-between w-full">
-            <p class="text-white">{{ type.name }}</p>
-            <u-icon name="i-lsicon-right-filled" class="size-5" />
+          <u-icon
+            :name="type?.icon || 'i-mdi-bank'"
+            class="size-7 text-indigo-400 group-hover:text-indigo-300 transition-colors"
+          />
+        </div>
+
+        <!-- Account Type Details -->
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <p
+              class="text-white text-base font-semibold group-hover:text-gray-100 transition-colors"
+            >
+              {{ type.name }}
+            </p>
+            <div class="px-2 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+              <span class="text-indigo-400 text-xs font-medium">{{
+                getAccountTypeCategory(type.name)
+              }}</span>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">
+            {{ getAccountTypeDescription(type.name) }}
+          </p>
+        </div>
+
+        <!-- Selection Arrow -->
+        <div
+          class="w-8 h-8 bg-white/5 border border-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/30 transition-all duration-200 backdrop-blur-sm"
+        >
+          <u-icon
+            name="i-lsicon-right-filled"
+            class="size-4 text-gray-500 group-hover:text-white transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div class="px-6 pt-8">
+      <div
+        class="p-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-sm"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center">
+            <u-icon name="i-mdi-lightbulb" class="size-4 text-blue-400" />
+          </div>
+          <div>
+            <p class="text-blue-300 text-sm font-medium">Choose wisely</p>
+            <p class="text-blue-400/80 text-xs">
+              Select the account type that best fits your needs
+            </p>
           </div>
         </div>
       </div>
@@ -58,6 +121,30 @@ const handleAccountCreated = () => {
   router.replace('/dashboard')
 }
 
+const getAccountTypeCategory = (typeName: string): string => {
+  const categories: Record<string, string> = {
+    'Checking Account': 'Banking',
+    'Savings Account': 'Banking',
+    'Credit Card': 'Credit',
+    Investment: 'Investment',
+    Cash: 'Physical',
+    Loan: 'Debt',
+  }
+  return categories[typeName] || 'General'
+}
+
+const getAccountTypeDescription = (typeName: string): string => {
+  const descriptions: Record<string, string> = {
+    'Checking Account': 'For everyday spending and transactions',
+    'Savings Account': 'For building your emergency fund',
+    'Credit Card': 'Track credit card expenses and payments',
+    Investment: 'Monitor your investment portfolio',
+    Cash: 'Physical cash on hand',
+    Loan: 'Track loan balances and payments',
+  }
+  return descriptions[typeName] || 'Manage your finances effectively'
+}
+
 onMounted(async () => {
   try {
     isLoading.value = true
@@ -92,5 +179,28 @@ onMounted(async () => {
     rgba(98, 91, 227, 1) 10%,
     rgba(0, 0, 0, 1) 100%
   );
+}
+
+.premium-account-type {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.premium-account-type:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bg-image {
+  background: linear-gradient(180deg, #0b0e1a, #1a1446);
 }
 </style>

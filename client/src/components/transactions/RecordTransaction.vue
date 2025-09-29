@@ -92,12 +92,18 @@
               </p>
             </div>
           </div>
-          <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="handleClose" />
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="xl"
+            @click="handleClose"
+          />
         </div>
 
         <!-- Content -->
-        <div class="flex-1 flex flex-col justify-between overflow-y-auto mt-2">
-          <div class="space-y-3">
+        <div class="flex-1 flex flex-col overflow-y-auto mt-2">
+          <div class="space-y-3 h-[80%] overflow-auto scrollbar-hide">
             <!-- Error -->
             <div v-show="displayError" class="mx-4 mt-4">
               <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
@@ -276,7 +282,7 @@
           </div>
 
           <!-- Submit -->
-          <div class="p-6 pt-8">
+          <div class="p-6 mt-auto">
             <u-button
               @click="handleAddExpense"
               :disabled="!amount || amount <= 0 || isSubmitting"

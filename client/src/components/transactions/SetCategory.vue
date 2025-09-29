@@ -38,6 +38,7 @@
           color="neutral"
           variant="ghost"
           icon="i-lucide-x"
+          size="xl"
           @click="emit('closeCategoryView')"
         />
       </div>

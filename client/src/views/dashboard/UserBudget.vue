@@ -33,9 +33,9 @@
         <!-- Add Budget Button -->
         <div
           @click="openModal = true"
-          class="w-[30px] h-[30px] rounded-full bg-indigo-700 flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-800"
+          class="w-[40px] h-[40px] rounded-full bg-indigo-700 flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-800"
         >
-          <u-icon name="i-mdi-plus" class="size-6 text-soft-white" />
+          <u-icon name="i-mdi-plus" class="size-8 text-soft-white" />
         </div>
       </header>
 
@@ -57,7 +57,7 @@
             :items="items"
             size="lg"
             :ui="{
-              base: 'w-full bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-indigo-600 bg-gray-950 z-[100]',
+              base: 'w-full p-4 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600 ring-indigo-600 bg-gray-950 z-[100]',
               item: 'text-white cursor-pointer hover:bg-gray-200 hover:!text-gray-600 px-4 py-2 ',
               content: 'bg-gray-950 text-white rounded-md z-[100]',
             }"

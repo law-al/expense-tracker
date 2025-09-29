@@ -25,7 +25,13 @@
           <slot name="title"></slot>
         </h2>
 
-        <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="emit('closeModal')" />
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          size="xl"
+          @click="emit('closeModal')"
+        />
       </div>
 
       <slot name="main"></slot>
