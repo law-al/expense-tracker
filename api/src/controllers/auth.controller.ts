@@ -13,7 +13,7 @@ import { NotFoundError } from '../exceptions/not-found.js';
 import { BadRequestError } from '../exceptions/bad-request.js';
 import { JWT_SECRET, NODE_ENV } from '../secret.js';
 import crypto from 'crypto';
-import { sendEmail } from '../utils/send-emal.js';
+import { sendEmail } from '../utils/send-email.js';
 
 interface IJwtPayload extends JwtPayload {
   id: number | string;

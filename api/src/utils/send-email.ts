@@ -3,7 +3,6 @@ import { EMAIL_USER, EMAIL_PASSWORD } from '../secret.js';
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
   const transporter = nodemailer.createTransport({
-    // add gmail
     service: 'gmail',
     auth: {
       user: EMAIL_USER,
@@ -16,7 +15,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
   });
 
   const mailOptions = {
-    from: '"Lawal A" <lawahm303@gmail.com>',
+    from: `"Lawal A" <${EMAIL_USER}>`,
     to,
     subject,
     html,
