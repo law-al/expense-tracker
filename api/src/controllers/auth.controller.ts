@@ -130,8 +130,8 @@ export const register = async (req: Request, res: Response) => {
       }
     },
     {
-      maxWait: 10000,
-      timeout: 30000,
+      maxWait: 50000,
+      timeout: 100000,
     }
   );
 
@@ -245,8 +245,8 @@ export const resendOtp = async (req: Request, res: Response) => {
       }
     },
     {
-      maxWait: 5000, // default: 2000
-      timeout: 10000, // default: 5000
+      maxWait: 50000, // default: 2000
+      timeout: 100000, // default: 5000
     }
   );
 
@@ -340,8 +340,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
       );
     },
     {
-      maxWait: 5000, // default: 2000
-      timeout: 10000, // default: 5000
+      maxWait: 50000, // default: 2000
+      timeout: 100000, // default: 5000
     }
   );
 
