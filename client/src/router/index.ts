@@ -32,14 +32,16 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if ((to.meta.requiresAuth || from.meta.requiresAuth) && !useUserStore().isAuthenticated)
+  if (to.meta.requiresAuth && !useUserStore().isAuthenticated) {
     next('/login')
-  else if (
+  } else if (
     (to.path === '/login' || to.path === '/register' || to.path === '/verify') &&
     useUserStore().isAuthenticated
-  )
+  ) {
     next('/dashboard')
-  else next()
+  } else {
+    next()
+  }
 })
 
 export default router

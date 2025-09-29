@@ -146,6 +146,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     console.log(response)
 
     if (response.status === 201 || response.status === 200) {
+      console.log('Redirecting to verify page with token:', response.data.data.accessToken)
+
       router.push({
         path: '/verify',
         query: { token: response.data.data.accessToken },
