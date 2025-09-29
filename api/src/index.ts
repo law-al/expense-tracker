@@ -20,6 +20,7 @@ process.on('unhandledRejection', (err) => {
   process.exit(1);
 });
 
+app.set('trust proxy', true);
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(
