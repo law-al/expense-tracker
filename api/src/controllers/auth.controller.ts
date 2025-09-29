@@ -47,58 +47,79 @@ const getTokens = (id: number | string, res: Response) => {
 // SECTION: Register user
 
 export const register = async (req: Request, res: Response) => {
+  // Validate request body
   RegisterSchema.parse(req.body);
 
   const { otp, otpHash } = generateOtp();
   let token: string | null = null;
 
-  const user = await prismaClient.user.findFirst({
+  // Check if user already exists
+  const existingUser = await prismaClient.user.findFirst({
     where: {
       OR: [{ username: req.body.username }, { email: req.body.email }],
     },
   });
 
-  if (user && !user.isVerified) {
-    await prismaClient.$transaction(async (tx) => {
-      token = jwt.sign({ id: user.id }, JWT_SECRET!);
-      await tx.user.update({
-        where: { id: user.id },
-        data: {
-          username: req.body.username,
-          email: req.body.email,
-          otp: otpHash,
-          otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
-          password: hashSync(req.body.password, 12),
-        },
-      });
-    });
+  // If user exists but is not verified, update their information
+  if (existingUser && !existingUser.isVerified) {
+    await prismaClient.$transaction(
+      async (tx) => {
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            username: req.body.username,
+            email: req.body.email,
+            otp: otpHash,
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+            password: hashSync(req.body.password, 12),
+          },
+        });
 
+        token = jwt.sign({ id: existingUser.id }, JWT_SECRET!);
+      },
+      {
+        maxWait: 5000, // Much shorter timeouts for Render
+        timeout: 8000,
+      }
+    );
+
+    // Send email outside of transaction to prevent timeout
     await sendEmail(
       req.body.email,
       'Verify your email',
       `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2 style="color: #333;">Email Verification</h2>
-            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
-            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
-            <p>This OTP will expire in 10 minutes.</p>
-            <p>If you did not request this, please ignore this email.</p>
-            <br />
-            <p>Best regards,<br/>Expense Tracker Team</p>
-          </div>
-          `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #333;">Email Verification</h2>
+        <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+        <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <br />
+        <p>Best regards,<br/>Expense Tracker Team</p>
+      </div>
+      `
     );
 
     return res.status(201).json({
       success: true,
       message: 'Please verify your email to complete registration',
-      data: { accessToken: token || null },
+      data: { accessToken: token },
     });
   }
 
+  // If user already exists and is verified
+  if (existingUser && existingUser.isVerified) {
+    return res.status(400).json({
+      success: false,
+      message: 'User with this username or email already exists',
+    });
+  }
+
+  // Create new user
+  let newUser;
   await prismaClient.$transaction(
     async (tx) => {
-      const user = await tx.user.create({
+      newUser = await tx.user.create({
         data: {
           username: req.body.username,
           email: req.body.email,
@@ -109,37 +130,38 @@ export const register = async (req: Request, res: Response) => {
         },
       });
 
-      token = jwt.sign({ id: user.id }, JWT_SECRET!);
-
-      if (user) {
-        await sendEmail(
-          req.body.email,
-          'Verify your email',
-          `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2 style="color: #333;">Email Verification</h2>
-            <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
-            <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
-            <p>This OTP will expire in 10 minutes.</p>
-            <p>If you did not request this, please ignore this email.</p>
-            <br />
-            <p>Best regards,<br/>Expense Tracker Team</p>
-          </div>
-          `
-        );
-      }
+      token = jwt.sign({ id: newUser.id }, JWT_SECRET!);
     },
     {
-      maxWait: 50000,
-      timeout: 100000,
+      maxWait: 5000, // Much shorter timeouts for Render
+      timeout: 8000,
     }
   );
 
-  res.status(201).json({
+  // Send email outside of transaction
+  if (newUser) {
+    await sendEmail(
+      req.body.email,
+      'Verify your email',
+      `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #333;">Email Verification</h2>
+        <p>Thank you for registering! Please use the OTP below to verify your email address:</p>
+        <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h3>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <br />
+        <p>Best regards,<br/>Expense Tracker Team</p>
+      </div>
+      `
+    );
+  }
+
+  return res.status(201).json({
     success: true,
     message: 'User registered successfully, Please verify your email',
     data: {
-      accessToken: token || null,
+      accessToken: token,
     },
   });
 };
